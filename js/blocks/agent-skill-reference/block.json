@@ -1,0 +1,30 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "agent-pilot/agent-skill-reference",
+	"version": "0.1.0",
+	"title": "Agent Skill Reference",
+	"category": "text",
+	"icon": "media-document",
+	"description": "Publish a post or blocks as an Agent Skill reference.",
+	"textdomain": "wpelevator-agent-pilot",
+	"parent": [ "agent-pilot/agent-skill" ],
+	"attributes": {
+		"fileName": {
+			"type": "string"
+		},
+		"format": {
+			"type": "string",
+			"default": "md"
+		},
+		"postId": {
+			"type": "number"
+		}
+	},
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"supports": {
+		"html": false,
+		"reusable": false
+	}
+}

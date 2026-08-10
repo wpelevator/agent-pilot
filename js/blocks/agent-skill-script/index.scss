@@ -1,0 +1,53 @@
+.agent-pilot-skill-script,
+.agent-pilot-skill-script .components-panel,
+.agent-pilot-skill-script__fields,
+.agent-pilot-skill-script__editor {
+	box-sizing: border-box;
+	max-width: 100%;
+	min-width: 0;
+	width: 100%;
+}
+
+.agent-pilot-skill-script__fields {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.agent-pilot-skill-script__editor {
+	overflow: hidden;
+}
+
+.agent-pilot-skill-script__editor .CodeMirror,
+.agent-pilot-skill-script__textarea {
+	border: 1px solid #ddd;
+	box-sizing: border-box;
+	font-family: Consolas, Monaco, monospace;
+	font-size: 13px;
+	line-height: 1.5;
+	min-height: 16rem;
+	width: 100%;
+}
+
+.agent-pilot-skill-script__editor .CodeMirror {
+	height: auto;
+}
+
+.agent-pilot-skill-script__editor .CodeMirror pre.CodeMirror-line,
+.agent-pilot-skill-script__editor .CodeMirror pre.CodeMirror-line-like {
+	font-family: inherit;
+	font-size: inherit;
+	line-height: inherit;
+}
+
+.agent-pilot-skill-script__editor .CodeMirror-scroll {
+	min-height: 16rem;
+}
+
+.agent-pilot-skill-script__editor .CodeMirror-placeholder {
+	color: #757575;
+}
+
+.agent-pilot-skill-script__textarea {
+	padding: 12px;
+}

@@ -1,0 +1,16 @@
+.agent-pilot-skill-asset__content {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	width: 100%;
+}
+
+.agent-pilot-skill-asset__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+}
+
+.agent-pilot-skill-asset__filename-control {
+	min-width: 0;
+}
