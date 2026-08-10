@@ -159,7 +159,7 @@ class Discovery {
 		}
 
 		$zip_cache_file = sprintf(
-			'%s/agent-skill-v1-%s.zip', // Bump the version number when the ZIP generation logic changes.
+			'%s/agent-skill-v2-%s.zip', // Bump the version number when the ZIP generation logic changes.
 			get_temp_dir(),
 			$skill->get_hash()
 		);
@@ -170,10 +170,8 @@ class Discovery {
 
 		$zip_file = new ZipArchive();
 		if ( true === $zip_file->open( $zip_cache_file, ZipArchive::CREATE | ZipArchive::OVERWRITE ) ) {
-			$skill_dir = $skill->get_name();
-
 			foreach ( $skill->get_files() as $filename => $content ) {
-				$zip_file->addFromString( sprintf( '%s/%s', $skill_dir, $filename ), $content );
+				$zip_file->addFromString( $filename, $content );
 			}
 
 			$zip_file->close();

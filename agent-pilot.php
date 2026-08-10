@@ -4,7 +4,7 @@
  * Description: Publish Agent Skills from WordPress.
  * Author: WP Elevator
  * Author URI: https://wpelevator.com
- * Version: 0.1.1
+ * Version: 0.2.0
  * Update URI: https://updates.wpelevator.com/wp-json/update-pilot/v1/plugins
  * Requires at least: 6.6
  * Requires PHP: 7.4

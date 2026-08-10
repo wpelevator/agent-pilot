@@ -160,7 +160,7 @@ Plain permalink artifact routes:
 ?agent-skill={name}&agent_pilot_skill_format=skill.zip
 ```
 
-The generated ZIP contains a directory named after the skill. Inside that directory, Agent Pilot writes `SKILL.md` plus valid files under `references/`, `scripts/`, and `assets/`.
+The generated ZIP represents the skill directory contents. Agent Pilot writes `SKILL.md` at the archive root, with valid supporting files under root-level `references/`, `scripts/`, and `assets/` directories.
 
 Artifact responses support `GET` and `HEAD`, include CORS and `X-Content-Type-Options` headers, and use ETags. WordPress front-end and REST API responses advertise the discovery index with an RFC 8288 `Link` header:
 

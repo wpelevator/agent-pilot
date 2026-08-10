@@ -180,7 +180,7 @@ class Discovery_Test extends \WP_UnitTestCase {
 		);
 	}
 
-	public function test_skill_archive_contains_the_generated_markdown_under_the_skill_directory() {
+	public function test_skill_archive_contains_the_generated_markdown_at_the_archive_root() {
 		$skill = $this->create_skill( 'alpha-skill', 'Alpha description.', 'publish' );
 
 		$archive = new \ZipArchive();
@@ -189,8 +189,8 @@ class Discovery_Test extends \WP_UnitTestCase {
 		$this->assertSame( 1, $archive->count(), 'The archive should currently package only the generated SKILL.md.' );
 		$this->assertSame(
 			$skill->get_as_markdown(),
-			$archive->getFromName( sprintf( '%s/%s', $skill->get_name(), Discovery::SKILL_FILE ) ),
-			'The archive should place the generated SKILL.md inside a directory named after the skill.'
+			$archive->getFromName( Discovery::SKILL_FILE ),
+			'The archive should place the generated SKILL.md at the archive root.'
 		);
 
 		$archive->close();
