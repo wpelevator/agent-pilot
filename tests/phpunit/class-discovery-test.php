@@ -5,6 +5,7 @@ namespace WPElevator\Agent_Pilot_Tests;
 use WPElevator\Agent_Pilot\Discovery;
 use WPElevator\Agent_Pilot\Plugin;
 use WPElevator\Agent_Pilot\Request;
+use WPElevator\Agent_Pilot\Response;
 use WPElevator\Agent_Pilot\Response_Emitter;
 use WPElevator\Agent_Pilot\Skill;
 use WPElevator\Agent_Pilot\Skills;
@@ -15,13 +16,28 @@ class Discovery_Test extends \WP_UnitTestCase {
 
 	private Skills $skills;
 
+	private Response_Emitter $response_emitter;
+
+	private ?Response $response = null;
+
 	public function set_up() {
 		parent::set_up();
 
 		Plugin::action_register_post_type();
 
 		$this->skills = new Skills( Plugin::POST_TYPE );
-		$this->discovery = new Discovery( $this->skills, new Response_Emitter( new Request() ) );
+		$this->response_emitter = $this->getMockBuilder( Response_Emitter::class )
+			->setConstructorArgs( [ new Request() ] )
+			->onlyMethods( [ 'send' ] )
+			->getMock();
+		$this->response_emitter
+			->method( 'send' )
+			->willReturnCallback(
+				function ( Response $response ): void {
+					$this->response = $this->response_emitter->prepare_response( $response );
+				}
+			);
+		$this->discovery = new Discovery( $this->skills, $this->response_emitter );
 	}
 
 	public function test_registers_the_well_known_index_rewrite_rule() {
@@ -180,6 +196,52 @@ class Discovery_Test extends \WP_UnitTestCase {
 		$archive->close();
 	}
 
+	/**
+	 * @dataProvider artifact_format_provider
+	 */
+	public function test_serves_public_skill_artifacts_to_logged_out_requests( string $format, string $content_type ) {
+		wp_set_current_user( 0 );
+
+		$skill = $this->create_skill( 'alpha-skill', 'Alpha description.', 'publish' );
+
+		$response = $this->serve_skill_artifact( $skill, $format );
+
+		$this->assertInstanceOf( Response::class, $response, 'Published skill artifacts should be served without requiring an authenticated WordPress user.' );
+		$this->assertSame( 200, $response->get_status(), 'Public skill artifacts should return a successful response.' );
+		$this->assertSame( $content_type, $response->get_header( 'Content-Type' ), 'Public skill artifacts should be emitted using the expected content type.' );
+	}
+
+	public function test_does_not_serve_unpublished_skill_artifacts_to_logged_out_requests() {
+		wp_set_current_user( 0 );
+
+		$skill = $this->create_skill( 'draft-skill', 'Draft description.', 'draft' );
+
+		$response = $this->serve_skill_artifact( $skill, Discovery::SKILL_FORMAT_MD, true );
+
+		$this->assertNull( $response, 'Logged-out requests should not receive unpublished skill artifacts.' );
+	}
+
+	public function test_serves_unpublished_skill_artifacts_to_users_who_can_read_the_post() {
+		$admin_id = self::factory()->user->create( [ 'role' => 'administrator' ] );
+		wp_set_current_user( $admin_id );
+
+		$skill = $this->create_skill( 'draft-skill', 'Draft description.', 'draft' );
+
+		$response = $this->serve_skill_artifact( $skill, Discovery::SKILL_FORMAT_MD, true );
+
+		$this->assertInstanceOf( Response::class, $response, 'Users who can read an unpublished post should be allowed to fetch its skill artifact.' );
+		$this->assertSame( 200, $response->get_status(), 'Readable unpublished skill artifacts should return a successful response.' );
+		$this->assertSame( 'text/markdown; charset=UTF-8', $response->get_header( 'Content-Type' ), 'Readable unpublished Markdown artifacts should be emitted as Markdown.' );
+		$this->assertNotSame( '', $response->get_header( 'Cache-Control' ), 'Unpublished skill artifact responses should include no-cache headers.' );
+	}
+
+	public function artifact_format_provider(): array {
+		return [
+			'markdown' => [ Discovery::SKILL_FORMAT_MD, 'text/markdown; charset=UTF-8' ],
+			'zip' => [ Discovery::SKILL_FORMAT_ZIP, 'application/zip' ],
+		];
+	}
+
 	private function create_skill( string $name, string $description, string $status ): Skill {
 		$post_id = self::factory()->post->create(
 			[
@@ -193,6 +255,27 @@ class Discovery_Test extends \WP_UnitTestCase {
 		);
 
 		return Skill::from_post_id( $post_id );
+	}
+
+	private function serve_skill_artifact( Skill $skill, string $format, ?bool $as_queried_object = false ): ?Response {
+		global $wp_query;
+
+		$this->response = null;
+		set_query_var( Discovery::SKILL_FORMAT, $format );
+
+		if ( $as_queried_object ) {
+			$wp_query->queried_object    = $skill->get_post();
+			$wp_query->queried_object_id = $skill->get_id();
+			set_query_var( Plugin::PERMALINK_PREFIX, '' );
+		} else {
+			$wp_query->queried_object    = null;
+			$wp_query->queried_object_id = 0;
+			set_query_var( Plugin::PERMALINK_PREFIX, $skill->get_name() );
+		}
+
+		$this->discovery->action_serve_file();
+
+		return $this->response;
 	}
 
 	private function get_skill_format_rewrite_pattern(): string {

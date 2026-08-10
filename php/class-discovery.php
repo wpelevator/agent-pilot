@@ -207,7 +207,7 @@ class Discovery {
 			$skill = $this->skills->get_public_skill( $name );
 		}
 
-		if ( isset( $skill ) && current_user_can( 'read_post', $skill->get_id() ) ) {
+		if ( isset( $skill ) && ( $skill->is_published() || current_user_can( 'read_post', $skill->get_id() ) ) ) {
 			$headers = [];
 
 			if ( ! $skill->is_published() ) {
