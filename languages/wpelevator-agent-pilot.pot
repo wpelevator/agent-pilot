@@ -11,14 +11,14 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "POT-Creation-Date: \n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.13.0-alpha\n"
+"X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wpelevator-agent-pilot\n"
 
 #. Plugin Name of the plugin
 #: agent-pilot.php:3
-#: php/class-plugin.php:74
-#: php/class-plugin.php:75
-#: php/class-plugin.php:101
+#: php/class-plugin.php:70
+#: php/class-plugin.php:71
+#: php/class-plugin.php:97
 msgid "Agent Pilot"
 msgstr ""
 
@@ -37,130 +37,131 @@ msgstr ""
 msgid "https://wpelevator.com"
 msgstr ""
 
-#: php/class-plugin.php:53
+#: php/class-discovery.php:158
+msgid "ZipArchive class is not available. Please ensure the PHP zip extension is installed and enabled."
+msgstr ""
+
+#: php/class-discovery.php:184
+msgid "Failed to create zip file."
+msgstr ""
+
+#: php/class-plugin.php:49
 msgid "Agent Pilot requires the Update Pilot plugin for automatic updates."
 msgstr ""
 
-#: php/class-plugin.php:86
+#: php/class-plugin.php:82
 msgid "Skills"
 msgstr ""
 
-#: php/class-plugin.php:92
+#: php/class-plugin.php:88
 msgid "Settings"
 msgstr ""
 
-#: php/class-plugin.php:102
+#: php/class-plugin.php:98
 msgid "Install Agent Skills"
 msgstr ""
 
-#: php/class-plugin.php:103
+#: php/class-plugin.php:99
 msgid "Install the published skills with:"
 msgstr ""
 
-#: php/class-plugin.php:105
+#: php/class-plugin.php:101
 msgid "Agent Skills discovery index:"
 msgstr ""
 
-#: php/class-plugin.php:126
+#: php/class-plugin.php:130
 msgid "Absolute permalink for the human-readable Agent Skill."
 msgstr ""
 
-#: php/class-plugin.php:141
+#: php/class-plugin.php:153
 msgid "Absolute URL for the generated SKILL.md file."
 msgstr ""
 
-#: php/class-plugin.php:176
-#: php/class-plugin.php:185
-#: php/class-plugin.php:186
+#: php/class-plugin.php:168
+#: php/class-plugin.php:177
+#: php/class-plugin.php:178
 msgid "Agent Skills"
 msgstr ""
 
-#: php/class-plugin.php:177
+#: php/class-plugin.php:169
 #: js/blocks/agent-skill/skill-files-panel.js:31
 msgid "Agent Skill"
 msgstr ""
 
-#: php/class-plugin.php:178
+#: php/class-plugin.php:170
 msgid "Add New Agent Skill"
 msgstr ""
 
-#: php/class-plugin.php:179
+#: php/class-plugin.php:171
 msgid "Edit Agent Skill"
 msgstr ""
 
-#: php/class-plugin.php:180
+#: php/class-plugin.php:172
 msgid "New Agent Skill"
 msgstr ""
 
-#: php/class-plugin.php:181
+#: php/class-plugin.php:173
 msgid "View Agent Skill"
 msgstr ""
 
-#: php/class-plugin.php:182
+#: php/class-plugin.php:174
 msgid "Search Agent Skills"
 msgstr ""
 
-#: php/class-plugin.php:183
+#: php/class-plugin.php:175
 msgid "No agent skills found."
 msgstr ""
 
-#: php/class-plugin.php:184
+#: php/class-plugin.php:176
 msgid "No agent skills found in Trash."
 msgstr ""
 
-#: php/class-plugin.php:218
+#: php/class-plugin.php:210
 msgid "Agent Skills compatibility requirements."
 msgstr ""
 
-#: js/blocks/agent-skill-asset/edit.js:49
-msgid "Asset Filename"
+#: php/class-skill.php:220
+msgid "References"
 msgstr ""
 
-#: js/blocks/agent-skill-asset/edit.js:52
-msgid "Select an attachment to set the filename. The assets/ directory prefix is added automatically."
+#: php/class-skill.php:225
+msgid "Assets"
 msgstr ""
 
-#: js/blocks/agent-skill-asset/edit.js:56
-msgid "The filename comes from the selected attachment and cannot be edited here. The assets/ directory prefix is added automatically."
+#: php/class-skill.php:230
+msgid "Scripts"
 msgstr ""
 
-#: js/blocks/agent-skill-asset/edit.js:78
-msgid "View"
+#: js/blocks/agent-skill-asset/edit.js:47
+#: js/blocks/agent-skill-script/edit.js:20
+msgid "Filename"
 msgstr ""
 
-#: js/blocks/agent-skill-asset/edit.js:87
-msgid "Replace"
+#: js/blocks/agent-skill-asset/edit.js:82
+msgid "Asset"
 msgstr ""
 
-#: js/blocks/agent-skill-reference/edit.js:11
+#: js/blocks/agent-skill-reference/edit.js:15
 msgid "Markdown (.md)"
 msgstr ""
 
-#: js/blocks/agent-skill-reference/edit.js:16
+#: js/blocks/agent-skill-reference/edit.js:20
 msgid "HTML (.html)"
 msgstr ""
 
-#: js/blocks/agent-skill-reference/edit.js:21
-msgid "Plain text (.txt)"
-msgstr ""
-
-#: js/blocks/agent-skill-reference/edit.js:57
+#: js/blocks/agent-skill-reference/edit.js:74
 msgid "Reference"
 msgstr ""
 
-#: js/blocks/agent-skill-reference/edit.js:63
+#: js/blocks/agent-skill-reference/edit.js:82
 msgid "Reference Format"
 msgstr ""
 
-#: js/blocks/agent-skill-reference/edit.js:69
+#: js/blocks/agent-skill-reference/edit.js:88
 msgid "Reference Filename"
 msgstr ""
 
-#: js/blocks/agent-skill-reference/edit.js:73
-msgid "Use lowercase letters and hyphens only. Choose .md, .html, or .txt format."
-msgstr ""
-
-#: js/blocks/agent-skill-reference/edit.js:98
+#: js/blocks/agent-skill-reference/edit.js:115
 msgid "Custom Content"
 msgstr ""
 
@@ -172,24 +173,28 @@ msgstr ""
 msgid "Use Existing Content"
 msgstr ""
 
-#: js/blocks/agent-skill-reference/post-selector.js:114
+#: js/blocks/agent-skill-reference/post-selector.js:113
 msgid "Use an existing post or page instead of the custom content below."
 msgstr ""
 
-#: js/blocks/agent-skill-reference/post-selector.js:122
+#: js/blocks/agent-skill-reference/post-selector.js:121
 msgid "Search posts, pages, and other content…"
 msgstr ""
 
-#: js/blocks/agent-skill-script/edit.js:16
-msgid "Script Filename"
-msgstr ""
-
-#: js/blocks/agent-skill-script/edit.js:17
+#: js/blocks/agent-skill-script/edit.js:21
 msgid "Use a filename without slashes. The scripts/ directory prefix is added automatically."
 msgstr ""
 
-#: js/blocks/agent-skill-script/edit.js:43
+#: js/blocks/agent-skill-script/edit.js:30
+msgid "Script content"
+msgstr ""
+
+#: js/blocks/agent-skill-script/edit.js:31
 msgid "Write script…"
+msgstr ""
+
+#: js/blocks/agent-skill-script/edit.js:63
+msgid "Script"
 msgstr ""
 
 #: js/blocks/agent-skill/edit.js:33
@@ -204,49 +209,49 @@ msgstr ""
 msgid "Add File"
 msgstr ""
 
-#: js/blocks/agent-skill/edit.js:55
+#: js/blocks/agent-skill/edit.js:60
+#: js/components/skill-section-panel.js:140
+msgid "Learn more"
+msgstr ""
+
+#: js/blocks/agent-skill/edit.js:72
 msgid "Required"
 msgstr ""
 
-#: js/blocks/agent-skill/edit.js:107
-msgid "Front Matter"
+#: js/blocks/agent-skill/edit.js:124
+msgid "Skill Front Matter"
 msgstr ""
 
-#: js/blocks/agent-skill/edit.js:110
-#: js/blocks/agent-skill/edit.js:195
-msgid "Learn more."
-msgstr ""
-
-#: js/blocks/agent-skill/edit.js:117
+#: js/blocks/agent-skill/edit.js:129
 msgid "Name"
 msgstr ""
 
-#: js/blocks/agent-skill/edit.js:131
+#: js/blocks/agent-skill/edit.js:143
 msgid "Skill name using lowercase letters, numbers, and hyphens (similar to post slugs)."
 msgstr ""
 
-#: js/blocks/agent-skill/edit.js:141
+#: js/blocks/agent-skill/edit.js:152
 msgid "Description"
 msgstr ""
 
-#: js/blocks/agent-skill/edit.js:147
+#: js/blocks/agent-skill/edit.js:159
 msgid "Explain what this skill does and when to use it. Used by agents to determine when to use the skill."
 msgstr ""
 
-#: js/blocks/agent-skill/edit.js:153
+#: js/blocks/agent-skill/edit.js:165
 msgid "Compatibility"
 msgstr ""
 
-#: js/blocks/agent-skill/edit.js:160
+#: js/blocks/agent-skill/edit.js:173
 msgid "Describe optional environment requirements, such as required tools, network access, or intended agent."
 msgstr ""
 
-#: js/blocks/agent-skill/edit.js:168
-msgid "Add skill resource"
+#: js/blocks/agent-skill/edit.js:184
+msgid "Skill Instructions"
 msgstr ""
 
-#: js/blocks/agent-skill/edit.js:191
-msgid "Instructions"
+#: js/blocks/agent-skill/edit.js:199
+msgid "Add skill resource"
 msgstr ""
 
 #: js/blocks/agent-skill/skill-files-panel.js:36
@@ -255,6 +260,16 @@ msgstr ""
 
 #: js/blocks/agent-skill/skill-files-panel.js:49
 msgid "Save with a valid name to generate the skill file URL."
+msgstr ""
+
+#: js/components/skill-section-panel.js:114
+msgid "Copied"
+msgstr ""
+
+#. translators: %s: resource path.
+#: js/components/skill-section-panel.js:120
+#, js-format
+msgid "Copy %s"
 msgstr ""
 
 #: js/blocks/agent-skill-asset/block.json
