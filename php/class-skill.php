@@ -56,8 +56,8 @@ class Skill {
 		$parts = [
 			// TODO: account for changes to linked posts in references and assets.
 			$this->post->ID,
-			$this->post->post_modified_gmt,
 			$this->post->post_content,
+			$this->get_last_modified() ?? '',
 		];
 
 		return md5( implode( '|', $parts ) );
@@ -111,6 +111,21 @@ class Skill {
 		return 'publish' === $this->post->post_status;
 	}
 
+	public function get_last_modified(): ?int {
+		// TODO: account for changes to linked references and assets.
+		$timestamp = get_post_modified_time( 'U', true, $this->post );
+
+		if ( ! $timestamp ) {
+			$timestamp = get_post_time( 'U', true, $this->post );
+		}
+
+		if ( $timestamp ) {
+			return (int) $timestamp;
+		}
+
+		return null;
+	}
+
 	public function get_front_matter(): array {
 		return [
 			'name' => $this->get_name(),
@@ -148,15 +163,11 @@ class Skill {
 	}
 
 	public function get_as_markdown(): string {
-		$front_matter = [];
-
-		foreach ( $this->get_front_matter() as $key => $value ) {
-			$front_matter[] = sprintf( '%s: %s', $key, $this->encode_yaml_string( $value ) );
-		}
+		$front_matter = new Yaml( $this->get_front_matter() );
 
 		return sprintf(
 			"---\n%s\n---\n\n%s\n",
-			implode( "\n", $front_matter ),
+			$front_matter->get_yaml(),
 			$this->get_body_markdown()
 		);
 	}
@@ -296,10 +307,6 @@ class Skill {
 			fn ( WP_Block $block ): Skill_Asset => new Skill_Asset( $block ),
 			$this->get_blocks( [ self::ASSET_BLOCK_NAME ] )
 		);
-	}
-
-	private function encode_yaml_string( string $value ): string {
-		return (string) wp_json_encode( $value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 	}
 
 	private function normalize_newlines( string $value ): string {

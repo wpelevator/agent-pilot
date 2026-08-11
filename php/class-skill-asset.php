@@ -9,10 +9,10 @@ class Skill_Asset extends Skill_Resource {
 	}
 
 	public function get_filename(): ?string {
-		$filename = $this->get_attribute( 'fileName' );
+		$filename = sanitize_file_name( (string) $this->get_attribute( 'fileName' ) );
 
-		if ( isset( $filename ) && '' !== $filename ) {
-			return sprintf( 'assets/%s', ltrim( $filename, '/' ) );
+		if ( '' !== $filename ) {
+			return sprintf( 'assets/%s', $filename );
 		}
 
 		return null;
@@ -39,7 +39,7 @@ class Skill_Asset extends Skill_Resource {
 	}
 
 	public function is_valid(): bool {
-		return ! empty( $this->get_attachment_id() );
+		return parent::is_valid() && ! empty( $this->get_attachment_id() );
 	}
 
 	public function get_content(): ?string {

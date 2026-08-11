@@ -16,7 +16,11 @@ class Skill_Reference extends Skill_Resource {
 				$filename = pathinfo( $filename, PATHINFO_FILENAME );
 			}
 
-			return sprintf( 'references/%s.%s', $filename, $format );
+			$filename = sanitize_file_name( sprintf( '%s.%s', $filename, $format ) );
+
+			if ( '' !== $filename ) {
+				return sprintf( 'references/%s', $filename );
+			}
 		}
 
 		return null;

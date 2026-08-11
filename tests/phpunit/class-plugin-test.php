@@ -168,7 +168,8 @@ class Plugin_Test extends \WP_UnitTestCase {
 
 		$this->assertStringStartsWith( '<div class="wp-block-agent-pilot-agent-skill">', $output, 'The human-facing output should preserve the Agent Skill block wrapper.' );
 		$this->assertStringContainsString( '<pre class="wp-block-code">', $output, 'The human-facing block should render generated Markdown in a pre element.' );
-		$this->assertStringContainsString( 'name: &quot;human-preview&quot;', $output, 'The pre element should contain escaped SKILL.md frontmatter.' );
+		$this->assertStringContainsString( 'name: human-preview', $output, 'The pre element should contain the SKILL.md frontmatter.' );
+		$this->assertStringContainsString( 'compatibility: &quot;&quot;', $output, 'The pre element should contain escaped SKILL.md frontmatter quoting.' );
 		$this->assertStringContainsString( 'Follow the instructions.', $output, 'The pre element should contain the generated Markdown instructions.' );
 		$this->assertStringNotContainsString( '<p>Follow the instructions.</p>', $output, 'Stored block HTML should not render instead of the generated Markdown preview.' );
 	}

@@ -159,7 +159,7 @@ class Discovery {
 		}
 
 		$zip_cache_file = sprintf(
-			'%s/agent-skill-v2-%s.zip', // Bump the version number when the ZIP generation logic changes.
+			'%s/agent-skill-v3-%s.zip', // Bump the version number when the ZIP generation logic changes.
 			get_temp_dir(),
 			$skill->get_hash()
 		);
@@ -170,8 +170,15 @@ class Discovery {
 
 		$zip_file = new ZipArchive();
 		if ( true === $zip_file->open( $zip_cache_file, ZipArchive::CREATE | ZipArchive::OVERWRITE ) ) {
+			$last_modified = $skill->get_last_modified();
+
 			foreach ( $skill->get_files() as $filename => $content ) {
 				$zip_file->addFromString( $filename, $content );
+
+				// Ensure the archives are byte-identical (same hash) when regenerating the ZIP with the same content.
+				if ( $last_modified && method_exists( $zip_file, 'setMtimeName' ) ) { // Requires PHP 8.0 with libzip 1.0+.
+					$zip_file->setMtimeName( $filename, $last_modified );
+				}
 			}
 
 			$zip_file->close();
@@ -214,7 +221,7 @@ class Discovery {
 
 			if ( self::SKILL_FORMAT_MD === $skill_format ) {
 				$skill_markdown = $this->cache->get(
-					sprintf( 'skill-md-v1-%d-%s', $skill->get_id(), $skill->get_hash() ),
+					sprintf( 'skill-md-v2-%d-%s', $skill->get_id(), $skill->get_hash() ),
 					fn (): string => $skill->get_as_markdown(),
 					HOUR_IN_SECONDS
 				);

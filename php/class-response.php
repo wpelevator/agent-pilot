@@ -40,6 +40,7 @@ class Response {
 				[
 					'Content-Type' => 'application/json; charset=UTF-8',
 				],
+				self::get_default_headers( $body ),
 				$headers
 			),
 			$body

@@ -80,7 +80,7 @@ Use the Add Reference, Add Script, and Add File buttons below the instructions t
 
 ## Resources
 
-Resources are stored in the skill post content, packaged into the skill ZIP, and listed in `SKILL.md`. Resource contents are not inlined into `SKILL.md`.
+Resources are stored in the skill post content, packaged into the skill ZIP, and listed in `SKILL.md`. Resource contents are not inlined into `SKILL.md`. Resource filenames are normalized with the WordPress `sanitize_file_name()` helper during packaging, so directory separators and path traversal sequences never reach the generated archive.
 
 ### References
 
@@ -120,6 +120,7 @@ Agent Pilot generates `SKILL.md` from:
   - `name` from the post slug.
   - `description` from the post excerpt.
   - `compatibility` from `agent_pilot__compatibility`.
+  - Values are emitted as plain YAML scalars and quoted only when required.
 - Body:
   - A top-level heading from the post title.
   - Supported instruction blocks converted to Markdown.
@@ -160,15 +161,15 @@ Plain permalink artifact routes:
 ?agent-skill={name}&agent_pilot_skill_format=skill.zip
 ```
 
-The generated ZIP represents the skill directory contents. Agent Pilot writes `SKILL.md` at the archive root, with valid supporting files under root-level `references/`, `scripts/`, and `assets/` directories.
+The generated ZIP represents the skill directory contents. Agent Pilot writes `SKILL.md` at the archive root, with valid supporting files under root-level `references/`, `scripts/`, and `assets/` directories. Archive entries reuse the skill last modified time, so an unchanged skill regenerates into byte-identical archives with a stable digest (on PHP 8.0 or newer).
 
-Artifact responses support `GET` and `HEAD`, include CORS and `X-Content-Type-Options` headers, and use ETags. WordPress front-end and REST API responses advertise the discovery index with an RFC 8288 `Link` header:
+Discovery index and artifact responses support `GET` and `HEAD`, include CORS and `X-Content-Type-Options` headers, and use ETags. WordPress front-end responses advertise the discovery index with an RFC 8288 `Link` header, while REST API responses do not include it:
 
 ```text
 Link: <https://example.com/.well-known/agent-skills/index.json>; rel="agent-skills"
 ```
 
-The raw artifact rewrite only accepts a one-segment format suffix such as `skill.md` or `skill.zip`. Nested paths and normal WordPress endpoints such as `/feed` and `/embed` remain available to WordPress.
+The raw artifact rewrite only accepts a one-segment format suffix such as `skill.md` or `skill.zip`, so nested paths such as `/agent-skill/{name}/references/guide.md` stay with WordPress. Other one-segment suffixes under a skill permalink, including `/feed` and `/embed`, are claimed by the same rewrite and resolve to the single skill view instead of the WordPress feed and embed endpoints.
 
 ## TODO
 

@@ -5,10 +5,10 @@ namespace WPElevator\Agent_Pilot;
 class Skill_Script extends Skill_Resource {
 
 	public function get_filename(): ?string {
-		$filename = $this->get_attribute( 'fileName' ) ?? null;
+		$filename = sanitize_file_name( (string) $this->get_attribute( 'fileName' ) );
 
-		if ( isset( $filename ) && '' !== $filename ) {
-			return sprintf( 'scripts/%s', ltrim( $filename, '/' ) );
+		if ( '' !== $filename ) {
+			return sprintf( 'scripts/%s', $filename );
 		}
 
 		return null;

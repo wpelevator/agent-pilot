@@ -1,3 +1,19 @@
+// The `Panel` component hard-codes a light surface (`background: #fff`)
+// while its headings, labels, and inputs inherit the text color from the
+// theme's editor styles. Pin the matching wp-admin text color and scheme so
+// the panel stays legible when the theme uses a dark color scheme.
+.agent-pilot-skill-section-panel.components-panel {
+	color: #1e1e1e;
+	color-scheme: light;
+
+	input,
+	select,
+	textarea {
+		background-color: #fff;
+		color: #1e1e1e;
+	}
+}
+
 .agent-pilot-skill-section-panel__heading {
 	align-items: center;
 	display: flex;

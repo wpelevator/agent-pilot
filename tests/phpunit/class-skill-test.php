@@ -71,9 +71,9 @@ class Skill_Test extends \WP_UnitTestCase {
 		$this->assertSame( 'Code Review', $skill->get_title(), 'Skill titles should come from the post title.' );
 		$this->assertSame( 'Review "code" safely.', $skill->get_description(), 'Skill description should come from the post excerpt.' );
 		$this->assertSame(
-			"---\nname: \"code-review\"\ndescription: \"Review \\\"code\\\" safely.\"\ncompatibility: \"\"\n---\n\n# Code Review\n\n## Review process\n\nInspect **changes**.\n\n- Find bugs\n- Report risks\n\n```\ncomposer test\n```\n",
+			"---\nname: code-review\ndescription: \"Review \\\"code\\\" safely.\"\ncompatibility: \"\"\n---\n\n# Code Review\n\n## Review process\n\nInspect **changes**.\n\n- Find bugs\n- Report risks\n\n```\ncomposer test\n```\n",
 			$skill->get_as_markdown(),
-			'Supported editor blocks should export as deterministic Markdown.'
+			'Supported editor blocks should export as deterministic Markdown with front matter quoted only when required.'
 		);
 	}
 
@@ -101,13 +101,91 @@ class Skill_Test extends \WP_UnitTestCase {
 			$skill->get_front_matter(),
 			'Skill frontmatter should expose the published identity fields.'
 		);
-		$this->assertStringContainsString( "compatibility: \"Requires Docker and WP-CLI.\"\n", $skill->get_as_markdown(), 'Compatibility metadata should be exported as SKILL.md frontmatter.' );
+		$this->assertStringContainsString( "compatibility: Requires Docker and WP-CLI.\n", $skill->get_as_markdown(), 'Compatibility metadata should be exported as plain unquoted SKILL.md frontmatter.' );
 	}
 
 	public function test_rejects_other_post_types() {
 		$post_id = self::factory()->post->create();
 
 		$this->assertNull( Skill::from_post_id( $post_id ), 'Only agent_skill posts should map to Skill domain objects.' );
+	}
+
+	public function test_last_modified_time_tracks_the_post_modification_time() {
+		$post_id = self::factory()->post->create(
+			[
+				'post_type' => Plugin::POST_TYPE,
+				'post_name' => 'timed-skill',
+				'post_date' => '2024-01-05 10:00:00',
+			]
+		);
+		$skill = Skill::from_post_id( $post_id );
+
+		$this->assertSame(
+			(int) get_post_modified_time( 'U', true, $skill->get_post() ),
+			$skill->get_last_modified(),
+			'The skill last modified timestamp should come from the GMT post modification time.'
+		);
+		$this->assertSame(
+			strtotime( '2024-01-05 10:00:00+00:00' ),
+			$skill->get_last_modified(),
+			'Skills that have not been edited since creation should reuse their creation time.'
+		);
+	}
+
+	public function test_normalizes_resource_filenames_to_safe_archive_paths() {
+		$post_id = self::factory()->post->create(
+			[
+				'post_type' => Plugin::POST_TYPE,
+				'post_name' => 'traversal-skill',
+				'post_content' => implode(
+					'',
+					[
+						'<!-- wp:agent-pilot/agent-skill-reference {"fileName":"../guide","format":"md"} --><div class="wp-block-agent-pilot-agent-skill-reference"><!-- wp:paragraph --><p>Guide.</p><!-- /wp:paragraph --></div><!-- /wp:agent-pilot/agent-skill-reference -->',
+						$this->serialize_script_block( '../../evil.sh', "echo evil\n" ),
+						$this->serialize_script_block( 'nested/run.sh', "echo nested\n" ),
+						'<!-- wp:agent-pilot/agent-skill-asset {"attachmentId":123,"fileName":"../SKILL.md"} --><div class="wp-block-agent-pilot-agent-skill-asset"></div><!-- /wp:agent-pilot/agent-skill-asset -->',
+					]
+				),
+			]
+		);
+		$skill = Skill::from_post_id( $post_id );
+
+		$this->assertSame(
+			[ 'references/guide.md' ],
+			array_map( fn ( $reference ): ?string => $reference->get_filename(), array_values( $skill->get_references() ) ),
+			'Path traversal sequences in reference filenames should be normalized away.'
+		);
+		$this->assertSame(
+			[ 'scripts/evil.sh', 'scripts/nestedrun.sh' ],
+			array_map( fn ( $script ): ?string => $script->get_filename(), array_values( $skill->get_scripts() ) ),
+			'Directory separators and path traversal sequences in script filenames should be normalized away.'
+		);
+		$this->assertSame(
+			[ 'assets/SKILL.md' ],
+			array_map( fn ( $asset ): ?string => $asset->get_filename(), array_values( $skill->get_assets() ) ),
+			'Asset filenames should never escape the assets directory of the generated archive.'
+		);
+	}
+
+	public function test_resources_with_filenames_that_normalize_to_nothing_are_not_publishable() {
+		$post_id = self::factory()->post->create(
+			[
+				'post_type' => Plugin::POST_TYPE,
+				'post_name' => 'unresolvable-skill',
+				'post_content' => implode(
+					'',
+					[
+						$this->serialize_script_block( '../', "echo\n" ),
+						'<!-- wp:agent-pilot/agent-skill-asset {"attachmentId":123,"fileName":"../"} --><div class="wp-block-agent-pilot-agent-skill-asset"></div><!-- /wp:agent-pilot/agent-skill-asset -->',
+					]
+				),
+			]
+		);
+		$skill = Skill::from_post_id( $post_id );
+
+		$this->assertNull( array_values( $skill->get_scripts() )[0]->get_filename(), 'A script filename that normalizes to nothing should not resolve to an archive path.' );
+		$this->assertFalse( array_values( $skill->get_scripts() )[0]->is_valid(), 'A script without a usable filename should not be publishable.' );
+		$this->assertFalse( array_values( $skill->get_assets() )[0]->is_valid(), 'An asset whose filename normalizes to nothing should not be publishable even with an attachment selected.' );
 	}
 
 	public function test_resolves_resource_blocks_into_their_packaged_file_paths() {

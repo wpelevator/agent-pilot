@@ -196,6 +196,47 @@ class Discovery_Test extends \WP_UnitTestCase {
 		$archive->close();
 	}
 
+	public function test_skill_archives_are_reproducible_for_unchanged_skills() {
+		$post_id = self::factory()->post->create(
+			[
+				'post_type' => Plugin::POST_TYPE,
+				'post_name' => 'stable-skill',
+				'post_title' => 'Stable Skill',
+				'post_excerpt' => 'Stable description.',
+				'post_content' => '<!-- wp:paragraph --><p>Follow these instructions.</p><!-- /wp:paragraph -->',
+				'post_status' => 'publish',
+				'post_date' => '2024-01-05 10:00:00',
+			]
+		);
+		$skill = Skill::from_post_id( $post_id );
+		$zip_file = $this->discovery->get_skill_zip_file( $skill );
+
+		if ( ! method_exists( new \ZipArchive(), 'setMtimeName' ) ) {
+			$this->markTestSkipped( 'Deterministic archive entry times require ZipArchive::setMtimeName() introduced in PHP 8.0.' );
+		}
+
+		$archive = new \ZipArchive();
+		$archive->open( $zip_file );
+		$entry = $archive->statName( Discovery::SKILL_FILE );
+		$archive->close();
+
+		$this->assertEqualsWithDelta(
+			$skill->get_last_modified(),
+			$entry['mtime'],
+			2, // ZIP entry times have a two-second resolution.
+			'Archive entries should reuse the skill last modified time instead of the generation time.'
+		);
+
+		$digest = hash_file( 'sha256', $zip_file );
+		unlink( $zip_file );
+
+		$this->assertSame(
+			$digest,
+			hash_file( 'sha256', $this->discovery->get_skill_zip_file( $skill ) ),
+			'Regenerating the archive of an unchanged skill should produce identical bytes so the advertised index digest stays valid.'
+		);
+	}
+
 	/**
 	 * @dataProvider artifact_format_provider
 	 */
