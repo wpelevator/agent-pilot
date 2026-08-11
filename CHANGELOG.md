@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 0.2.1 (2026-08-11)
+## 0.3.0 (2026-08-11)
 
 - fix: pin light color scheme on skill section panels so headings, labels, and inputs stay legible when the active theme uses a dark editor color scheme ([#151](https://github.com/wpelevator/basement/pull/151)).
 - security: normalize resource filenames with the WordPress `sanitize_file_name()` helper during packaging so directory separators and path traversal sequences never reach the generated skill archives ([#151](https://github.com/wpelevator/basement/pull/151)).
