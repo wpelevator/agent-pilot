@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7b0fd6d36a95884bff487317a8592c8f",
+    "content-hash": "0a4d3fde2a1bf0f9d496c1b59d6eff5c",
     "packages": [
         {
             "name": "nikic/php-parser",
@@ -65,16 +65,16 @@
         },
         {
             "name": "wpelevator/update-client",
-            "version": "0.1.0",
+            "version": "0.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/wpelevator/update-client.git",
-                "reference": "1500264ff1f8efed0faddea837f42ec8622d73b3"
+                "reference": "26ea168eedae7517bc1100f2a869013e9cfff62a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wpelevator/update-client/zipball/1500264ff1f8efed0faddea837f42ec8622d73b3",
-                "reference": "1500264ff1f8efed0faddea837f42ec8622d73b3",
+                "url": "https://api.github.com/repos/wpelevator/update-client/zipball/26ea168eedae7517bc1100f2a869013e9cfff62a",
+                "reference": "26ea168eedae7517bc1100f2a869013e9cfff62a",
                 "shasum": ""
             },
             "type": "library",
@@ -89,9 +89,9 @@
             ],
             "description": "Implement automatic updates for self-hosted WordPress plugins and themes",
             "support": {
-                "source": "https://github.com/wpelevator/update-client/tree/0.1.0"
+                "source": "https://github.com/wpelevator/update-client/tree/0.4.0"
             },
-            "time": "2026-07-22T16:12:26+00:00"
+            "time": "2026-08-11T13:39:52+00:00"
         },
         {
             "name": "wpelevator/vendor-isolator",

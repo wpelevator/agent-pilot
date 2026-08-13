@@ -4,7 +4,7 @@
  * Description: Publish Agent Skills from WordPress.
  * Author: WP Elevator
  * Author URI: https://wpelevator.com
- * Version: 0.3.0
+ * Version: 0.3.1
  * Update URI: https://updates.wpelevator.com/wp-json/update-pilot/v1/plugins
  * Requires at least: 6.6
  * Requires PHP: 7.4
@@ -26,6 +26,9 @@ if ( is_readable( __DIR__ . '/vendor-isolated/vendor/autoload.php' ) ) {
 if ( ! class_exists( Plugin::class ) && file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
 	require_once __DIR__ . '/vendor/autoload.php';
 }
+
+// Configure the Update Pilot integration for this plugin.
+require_once __DIR__ . '/update-pilot.php';
 
 function plugin(): Plugin {
 	static $plugin;

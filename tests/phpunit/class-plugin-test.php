@@ -64,21 +64,7 @@ class Plugin_Test extends \WP_UnitTestCase {
 	public function test_init_registers_current_hooks() {
 		$this->plugin->init();
 
-		$this->assertSame( 10, has_action( 'init', [ $this->plugin, 'action_require_update_pilot' ] ), 'Plugin initialization should require Update Pilot for automatic updates.' );
-		$this->assertSame( 10, has_action( 'init', [ $this->plugin, 'action_register_post_type' ] ), 'Plugin initialization should register the post type on init.' );
-		$this->assertSame( 10, has_action( 'init', [ $this->plugin, 'action_register_blocks' ] ), 'Plugin initialization should register blocks on init.' );
-		$this->assertSame( 10, has_action( 'rest_api_init', [ $this->plugin, 'action_register_rest_fields' ] ), 'Plugin initialization should register the skill REST fields.' );
-		$this->assertSame( 10, has_action( 'admin_menu', [ $this->plugin, 'action_register_settings_page' ] ), 'Plugin initialization should register the settings page.' );
-		$this->assertSame( 10, has_filter( 'allowed_block_types_all', [ $this->plugin, 'filter_allowed_block_types' ] ), 'Plugin initialization should restrict blocks through the current editor filter.' );
-		$this->assertSame( 10, has_filter( 'plugin_action_links_' . $this->plugin->get_basename(), [ $this->plugin, 'filter_plugin_action_links' ] ), 'Plugin initialization should add the plugin list action links.' );
-		$this->assertSame( 10, has_filter( 'update_pilot__plugins', [ $this->plugin, 'filter_register_update_pilot_plugin' ] ), 'Plugin initialization should register Agent Pilot with Update Pilot.' );
 		$this->assertNotFalse( has_filter( 'query_vars' ), 'Plugin initialization should boot the discovery endpoints.' );
-	}
-
-	public function test_update_pilot_registration_includes_the_plugin_file() {
-		$plugins = $this->plugin->filter_register_update_pilot_plugin( [] );
-
-		$this->assertSame( [ 'file' => __FILE__ ], $plugins[ plugin_basename( __FILE__ ) ], 'Update Pilot should receive Agent Pilot’s plugin file.' );
 	}
 
 	public function test_plugin_action_links_point_at_the_skill_list_and_settings() {

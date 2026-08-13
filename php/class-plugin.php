@@ -2,8 +2,6 @@
 
 namespace WPElevator\Agent_Pilot;
 
-use WPElevator\Agent_Pilot_Vendor\WPElevator\Update_Client\Plugin_Require;
-
 class Plugin {
 
 	public const POST_TYPE = 'agent_skill';
@@ -27,38 +25,18 @@ class Plugin {
 	}
 
 	public function init() {
-		add_action( 'init', [ $this, 'action_require_update_pilot' ] );
 		add_action( 'init', [ $this, 'action_register_post_type' ] );
 		add_action( 'init', [ $this, 'action_register_blocks' ] );
 		add_action( 'rest_api_init', [ $this, 'action_register_rest_fields' ] );
 		add_filter( 'allowed_block_types_all', [ $this, 'filter_allowed_block_types' ], 10, 2 );
 		add_action( 'admin_menu', [ $this, 'action_register_settings_page' ] );
 		add_filter( 'plugin_action_links_' . $this->get_basename(), [ $this, 'filter_plugin_action_links' ] );
-		add_filter( 'update_pilot__plugins', [ $this, 'filter_register_update_pilot_plugin' ] );
 
 		$this->discovery->init();
 	}
 
 	public function get_basename(): string {
 		return plugin_basename( $this->plugin_file );
-	}
-
-	public function action_require_update_pilot(): void {
-		$require = new Plugin_Require(
-			[
-				'notice' => __( 'Agent Pilot requires the Update Pilot plugin for automatic updates.', 'wpelevator-agent-pilot' ),
-			]
-		);
-
-		$require->init();
-	}
-
-	public function filter_register_update_pilot_plugin( array $plugins ): array {
-		$plugins[ $this->get_basename() ] = [
-			'file' => $this->plugin_file,
-		];
-
-		return $plugins;
 	}
 
 	public function get_skills(): Skills {
