@@ -2,7 +2,7 @@
 # This file is distributed under the same license as the Agent Pilot plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Agent Pilot 0.3.0\n"
+"Project-Id-Version: Agent Pilot 0.3.1\n"
 "Report-Msgid-Bugs-To: https://github.com/wpelevator/basement\n"
 "Last-Translator: support@wpelevator.com\n"
 "Language-Team: support@wpelevator.com\n"
@@ -16,9 +16,9 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #: agent-pilot.php:3
-#: php/class-plugin.php:70
-#: php/class-plugin.php:71
-#: php/class-plugin.php:97
+#: php/class-plugin.php:48
+#: php/class-plugin.php:49
+#: php/class-plugin.php:75
 msgid "Agent Pilot"
 msgstr ""
 
@@ -45,78 +45,74 @@ msgstr ""
 msgid "Failed to create zip file."
 msgstr ""
 
-#: php/class-plugin.php:49
-msgid "Agent Pilot requires the Update Pilot plugin for automatic updates."
-msgstr ""
-
-#: php/class-plugin.php:82
+#: php/class-plugin.php:60
 msgid "Skills"
 msgstr ""
 
-#: php/class-plugin.php:88
+#: php/class-plugin.php:66
 msgid "Settings"
 msgstr ""
 
-#: php/class-plugin.php:98
+#: php/class-plugin.php:76
 msgid "Install Agent Skills"
 msgstr ""
 
-#: php/class-plugin.php:99
+#: php/class-plugin.php:77
 msgid "Install the published skills with:"
 msgstr ""
 
-#: php/class-plugin.php:101
+#: php/class-plugin.php:79
 msgid "Agent Skills discovery index:"
 msgstr ""
 
-#: php/class-plugin.php:130
+#: php/class-plugin.php:108
 msgid "Absolute permalink for the human-readable Agent Skill."
 msgstr ""
 
-#: php/class-plugin.php:153
+#: php/class-plugin.php:131
 msgid "Absolute URL for the generated SKILL.md file."
 msgstr ""
 
-#: php/class-plugin.php:168
-#: php/class-plugin.php:177
-#: php/class-plugin.php:178
+#: php/class-plugin.php:146
+#: php/class-plugin.php:155
+#: php/class-plugin.php:156
 msgid "Agent Skills"
 msgstr ""
 
-#: php/class-plugin.php:169
+#: php/class-plugin.php:147
 #: js/blocks/agent-skill/skill-files-panel.js:31
 msgid "Agent Skill"
 msgstr ""
 
-#: php/class-plugin.php:170
+#: php/class-plugin.php:148
 msgid "Add New Agent Skill"
 msgstr ""
 
-#: php/class-plugin.php:171
+#: php/class-plugin.php:149
 msgid "Edit Agent Skill"
 msgstr ""
 
-#: php/class-plugin.php:172
+#: php/class-plugin.php:150
 msgid "New Agent Skill"
 msgstr ""
 
-#: php/class-plugin.php:173
+#: php/class-plugin.php:151
 msgid "View Agent Skill"
 msgstr ""
 
-#: php/class-plugin.php:174
+#: php/class-plugin.php:152
 msgid "Search Agent Skills"
 msgstr ""
 
-#: php/class-plugin.php:175
+#: php/class-plugin.php:153
 msgid "No agent skills found."
 msgstr ""
 
-#: php/class-plugin.php:176
+#: php/class-plugin.php:154
 msgid "No agent skills found in Trash."
 msgstr ""
 
-#: php/class-plugin.php:210
+#: php/class-plugin.php:188
 msgid "Agent Skills compatibility requirements."
 msgstr ""
 
@@ -130,6 +126,10 @@ msgstr ""
 
 #: php/class-skill.php:241
 msgid "Scripts"
+msgstr ""
+
+#: update-pilot.php:25
+msgid "Agent Pilot requires the Update Pilot plugin for automatic updates."
 msgstr ""
 
 #: js/blocks/agent-skill-asset/edit.js:47
