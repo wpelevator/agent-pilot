@@ -1,0 +1,23 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "agent-pilot/agent-skill",
+  "version": "0.1.2",
+  "title": "Agent Skill",
+  "category": "text",
+  "icon": "format-chat",
+  "description": "Author an Agent Skill.",
+  "textdomain": "wpelevator-agent-pilot",
+  "usesContext": [
+    "postId",
+    "postType"
+  ],
+  "editorScript": "file:./index.js",
+  "editorStyle": "file:./index.css",
+  "render": "file:./block.php",
+  "supports": {
+    "html": false,
+    "reusable": false,
+    "inserter": false
+  }
+}
