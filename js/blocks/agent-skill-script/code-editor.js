@@ -224,10 +224,5 @@ export default function ScriptCodeEditor( {
 		};
 	}, [ label, mode, modeName, placeholder ] );
 
-	return (
-		<div
-			className="agent-pilot-skill-script__editor"
-			ref={ editorRootRef }
-		/>
-	);
+	return <div className="agent-pilot-code-editor" ref={ editorRootRef } />;
 }

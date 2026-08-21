@@ -1,12 +1,6 @@
 # Agent Pilot
 
-Agent Pilot lets WordPress authors create [Agent Skills](https://agentskills.io/specification) in the block editor and publish them through the [Agent Skills Discovery via Well-Known URIs](https://github.com/cloudflare/agent-skills-discovery-rfc) v0.2.0 draft.
-
-The plugin stores each skill as an `agent_skill` post, generates a deterministic `SKILL.md`, packages any references, scripts, and assets into a ZIP archive, and advertises the public discovery index at:
-
-```text
-/.well-known/agent-skills/index.json
-```
+Agent Pilot lets WordPress authors create [Agent Skills](https://agentskills.io/specification) in the block editor and publish them through the [Agent Skills Discovery via Well-Known URIs](https://github.com/cloudflare/agent-skills-discovery-rfc) v0.2.0 draft and [Agent Plugins](https://agent-plugins.org/specification). Skills are standalone instructions discovered through the well-known index while plugins are packages that compose Skills and optional MCP server configuration.
 
 ## Requirements
 
@@ -15,7 +9,7 @@ The plugin stores each skill as an `agent_skill` post, generates a deterministic
 - PHP `zip` extension for archive generation.
 - Update Pilot is used for automatic plugin updates. Agent Pilot shows an admin notice when Update Pilot is unavailable.
 
-## Installing Skills
+## Installing Agent Skills
 
 Publish one or more Agent Skills, then install them with the [`skills` CLI](https://www.npmjs.com/package/skills). Replace `https://example.com` with the WordPress site URL.
 
@@ -126,7 +120,7 @@ Agent Pilot generates `SKILL.md` from:
   - Supported instruction blocks converted to Markdown.
   - `References`, `Assets`, and `Scripts` sections listing packaged resource paths when valid resources exist.
 
-The editor sidebar includes an Agent Skill panel with a `SKILL.md` link after the post has a usable skill file URL.
+The editor sidebar includes an Agent Skill panel with links to the generated `SKILL.md` file and `SKILL.zip` archive after the post has a usable skill URL.
 
 On human-facing single skill pages, the Agent Skill block renders the generated Markdown inside an escaped `<pre>` block so visitors can inspect the exact output.
 
@@ -170,6 +164,26 @@ Link: <https://example.com/.well-known/agent-skills/index.json>; rel="agent-skil
 ```
 
 The raw artifact rewrite only accepts a one-segment format suffix such as `skill.md` or `skill.zip`, so nested paths such as `/agent-skill/{name}/references/guide.md` stay with WordPress. Other one-segment suffixes under a skill permalink, including `/feed` and `/embed`, are claimed by the same rewrite and resolve to the single skill view instead of the WordPress feed and embed endpoints.
+
+## Authoring Agent Plugins
+
+Create an **Agent Plugin** post, enter its manifest details in the top-level block, then insert Plugin Skill and MCP Server child blocks. Skills are stored by post ID and are included live: changing a selected skill changes the next generated plugin archive without re-saving the plugin.
+
+The manifest supports `name` (the post slug), `description` (the excerpt), `author`, `license`, and `extensions`. A package needs at least one selected skill or valid MCP server. Published packages may only select published skills.
+
+Each MCP server uses a name plus a raw JSON object edited with JSON syntax highlighting. Agent Pilot preserves the object without validating its transport or schema; authors are responsible for supplying configuration that their target MCP client accepts. MCP definitions are public package contents—never put credentials or tokens in them.
+
+Agent Plugin artifacts are available for a valid published plugin at:
+
+```text
+/agent-plugin/{name}/plugin.json
+/agent-plugin/{name}/mcp.json
+/agent-plugin/{name}/plugin.zip
+```
+
+The editor sidebar includes an Agent Plugin panel linking to every routed artifact: `plugin.json`, `mcp.json` when available, and `plugin.zip`.
+
+With plain permalinks, use `?agent-plugin={name}&agent_pilot_plugin_format=plugin.json` (or `mcp.json` / `plugin.zip`). Draft previews require permission to read every referenced post and are never publicly cacheable. The ZIP is a distribution convenience: the specification defines the extracted directory layout (`plugin.json`, `skills/{name}/…`, and optional `mcp.json`), not an installation or distribution protocol.
 
 ## TODO
 

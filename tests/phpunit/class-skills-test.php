@@ -15,7 +15,7 @@ class Skills_Test extends \WP_UnitTestCase {
 	}
 
 	public function test_resolves_only_published_skills_in_name_order() {
-		$skills = new Skills( Plugin::POST_TYPE );
+		$skills = new Skills( Plugin::POST_TYPE_AGENT_SKILL );
 		$this->create_skill( 'zebra-skill', 'publish' );
 		$this->create_skill( 'alpha-skill', 'publish' );
 		$this->create_skill( 'private-skill', 'private' );
@@ -30,7 +30,7 @@ class Skills_Test extends \WP_UnitTestCase {
 	}
 
 	public function test_public_lookup_hides_unpublished_skills() {
-		$skills = new Skills( Plugin::POST_TYPE );
+		$skills = new Skills( Plugin::POST_TYPE_AGENT_SKILL );
 		$this->create_skill( 'public-skill', 'publish' );
 		$this->create_skill( 'private-skill', 'private' );
 		$this->create_skill( 'draft-skill', 'draft' );
@@ -46,7 +46,7 @@ class Skills_Test extends \WP_UnitTestCase {
 	private function create_skill( string $name, string $status ): int {
 		return self::factory()->post->create(
 			[
-				'post_type' => Plugin::POST_TYPE,
+				'post_type' => Plugin::POST_TYPE_AGENT_SKILL,
 				'post_name' => $name,
 				'post_status' => $status,
 			]

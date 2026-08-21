@@ -16,7 +16,7 @@ class Skill_Test extends \WP_UnitTestCase {
 	public function test_resolves_the_regular_permalink_for_published_skills() {
 		$post_id = self::factory()->post->create(
 			[
-				'post_type' => Plugin::POST_TYPE,
+				'post_type' => Plugin::POST_TYPE_AGENT_SKILL,
 				'post_name' => 'example-skill',
 				'post_status' => 'publish',
 			]
@@ -30,7 +30,7 @@ class Skill_Test extends \WP_UnitTestCase {
 	public function test_resolves_a_preview_permalink_for_unpublished_skills() {
 		$post_id = self::factory()->post->create(
 			[
-				'post_type' => Plugin::POST_TYPE,
+				'post_type' => Plugin::POST_TYPE_AGENT_SKILL,
 				'post_name' => 'draft-skill',
 				'post_status' => 'draft',
 			]
@@ -44,7 +44,7 @@ class Skill_Test extends \WP_UnitTestCase {
 	public function test_encapsulates_post_fields_and_serializes_blocks_to_markdown() {
 		$post_id = self::factory()->post->create(
 			[
-				'post_type' => Plugin::POST_TYPE,
+				'post_type' => Plugin::POST_TYPE_AGENT_SKILL,
 				'post_name' => 'code-review',
 				'post_title' => 'Code Review',
 				'post_excerpt' => 'Review "code" safely.',
@@ -80,7 +80,7 @@ class Skill_Test extends \WP_UnitTestCase {
 	public function test_includes_compatibility_frontmatter_from_prefixed_post_meta() {
 		$post_id = self::factory()->post->create(
 			[
-				'post_type' => Plugin::POST_TYPE,
+				'post_type' => Plugin::POST_TYPE_AGENT_SKILL,
 				'post_name' => 'docker-skill',
 				'post_excerpt' => 'Run Docker commands.',
 				'post_content' => '<!-- wp:paragraph --><p>Use Docker.</p><!-- /wp:paragraph -->',
@@ -113,7 +113,7 @@ class Skill_Test extends \WP_UnitTestCase {
 	public function test_last_modified_time_tracks_the_post_modification_time() {
 		$post_id = self::factory()->post->create(
 			[
-				'post_type' => Plugin::POST_TYPE,
+				'post_type' => Plugin::POST_TYPE_AGENT_SKILL,
 				'post_name' => 'timed-skill',
 				'post_date' => '2024-01-05 10:00:00',
 			]
@@ -135,7 +135,7 @@ class Skill_Test extends \WP_UnitTestCase {
 	public function test_normalizes_resource_filenames_to_safe_archive_paths() {
 		$post_id = self::factory()->post->create(
 			[
-				'post_type' => Plugin::POST_TYPE,
+				'post_type' => Plugin::POST_TYPE_AGENT_SKILL,
 				'post_name' => 'traversal-skill',
 				'post_content' => implode(
 					'',
@@ -170,7 +170,7 @@ class Skill_Test extends \WP_UnitTestCase {
 	public function test_resources_with_filenames_that_normalize_to_nothing_are_not_publishable() {
 		$post_id = self::factory()->post->create(
 			[
-				'post_type' => Plugin::POST_TYPE,
+				'post_type' => Plugin::POST_TYPE_AGENT_SKILL,
 				'post_name' => 'unresolvable-skill',
 				'post_content' => implode(
 					'',
@@ -223,7 +223,7 @@ class Skill_Test extends \WP_UnitTestCase {
 		$content = "#!/bin/sh\nif [ \"\$1\" -lt 3 ] && [ \"\$1\" -gt 1 ]; then\n\techo '<ok> & done'\nfi\n";
 		$post_id = self::factory()->post->create(
 			[
-				'post_type' => Plugin::POST_TYPE,
+				'post_type' => Plugin::POST_TYPE_AGENT_SKILL,
 				'post_name' => 'entity-script-skill',
 				'post_content' => $this->serialize_script_block( 'check.sh', $content ),
 			]
@@ -237,7 +237,7 @@ class Skill_Test extends \WP_UnitTestCase {
 	public function test_script_content_is_absent_until_the_block_is_written() {
 		$post_id = self::factory()->post->create(
 			[
-				'post_type' => Plugin::POST_TYPE,
+				'post_type' => Plugin::POST_TYPE_AGENT_SKILL,
 				'post_name' => 'empty-script-skill',
 				'post_content' => '<!-- wp:agent-pilot/agent-skill-script {"fileName":"empty.sh"} --><div class="wp-block-agent-pilot-agent-skill-script"></div><!-- /wp:agent-pilot/agent-skill-script -->',
 			]
@@ -250,7 +250,7 @@ class Skill_Test extends \WP_UnitTestCase {
 	public function test_reference_filenames_move_a_trailing_extension_into_the_format() {
 		$post_id = self::factory()->post->create(
 			[
-				'post_type' => Plugin::POST_TYPE,
+				'post_type' => Plugin::POST_TYPE_AGENT_SKILL,
 				'post_name' => 'html-reference-skill',
 				'post_content' => '<!-- wp:agent-pilot/agent-skill-reference {"fileName":"guide.html","format":"html"} --><div class="wp-block-agent-pilot-agent-skill-reference"></div><!-- /wp:agent-pilot/agent-skill-reference -->',
 			]
@@ -283,7 +283,7 @@ class Skill_Test extends \WP_UnitTestCase {
 		);
 		$post_id = self::factory()->post->create(
 			[
-				'post_type' => Plugin::POST_TYPE,
+				'post_type' => Plugin::POST_TYPE_AGENT_SKILL,
 				'post_name' => 'linked-reference-skill',
 				'post_content' => sprintf(
 					'<!-- wp:agent-pilot/agent-skill-reference {"fileName":"guide","format":"md","postId":%d} --><div class="wp-block-agent-pilot-agent-skill-reference"><!-- wp:paragraph --><p>Ignored custom content.</p><!-- /wp:paragraph --></div><!-- /wp:agent-pilot/agent-skill-reference -->',
@@ -302,7 +302,7 @@ class Skill_Test extends \WP_UnitTestCase {
 	public function test_reference_without_content_publishes_nothing() {
 		$post_id = self::factory()->post->create(
 			[
-				'post_type' => Plugin::POST_TYPE,
+				'post_type' => Plugin::POST_TYPE_AGENT_SKILL,
 				'post_name' => 'empty-reference-skill',
 				'post_content' => '<!-- wp:agent-pilot/agent-skill-reference {"fileName":"guide","format":"md"} --><div class="wp-block-agent-pilot-agent-skill-reference"></div><!-- /wp:agent-pilot/agent-skill-reference -->',
 			]
@@ -323,7 +323,7 @@ class Skill_Test extends \WP_UnitTestCase {
 		);
 		$post_id = self::factory()->post->create(
 			[
-				'post_type' => Plugin::POST_TYPE,
+				'post_type' => Plugin::POST_TYPE_AGENT_SKILL,
 				'post_name' => 'asset-skill',
 				'post_content' => sprintf( '<!-- wp:agent-pilot/agent-skill-asset {"attachmentId":%d,"fileName":"notes.txt"} --><div class="wp-block-agent-pilot-agent-skill-asset"></div><!-- /wp:agent-pilot/agent-skill-asset -->', $attachment_id ),
 			]
@@ -336,7 +336,7 @@ class Skill_Test extends \WP_UnitTestCase {
 	public function test_skips_resources_that_are_not_fully_configured() {
 		$post_id = self::factory()->post->create(
 			[
-				'post_type' => Plugin::POST_TYPE,
+				'post_type' => Plugin::POST_TYPE_AGENT_SKILL,
 				'post_name' => 'placeholder-skill',
 				'post_content' => implode(
 					'',
@@ -365,7 +365,7 @@ class Skill_Test extends \WP_UnitTestCase {
 	public function test_reports_whether_a_skill_needs_to_be_published_as_an_archive() {
 		$plain_post_id = self::factory()->post->create(
 			[
-				'post_type' => Plugin::POST_TYPE,
+				'post_type' => Plugin::POST_TYPE_AGENT_SKILL,
 				'post_name' => 'plain-skill',
 				'post_content' => '<!-- wp:paragraph --><p>Instructions only.</p><!-- /wp:paragraph -->',
 			]
@@ -380,7 +380,7 @@ class Skill_Test extends \WP_UnitTestCase {
 
 		return self::factory()->post->create(
 			[
-				'post_type' => Plugin::POST_TYPE,
+				'post_type' => Plugin::POST_TYPE_AGENT_SKILL,
 				'post_name' => 'scripted-skill',
 				'post_title' => 'Scripted Skill',
 				'post_content' => implode(
@@ -401,7 +401,7 @@ class Skill_Test extends \WP_UnitTestCase {
 	private function create_reference_skill( string $format ): Skill {
 		$post_id = self::factory()->post->create(
 			[
-				'post_type' => Plugin::POST_TYPE,
+				'post_type' => Plugin::POST_TYPE_AGENT_SKILL,
 				'post_name' => sprintf( 'reference-%s-skill', $format ),
 				'post_content' => sprintf(
 					'<!-- wp:agent-pilot/agent-skill-reference {"fileName":"guide","format":"%s"} --><div class="wp-block-agent-pilot-agent-skill-reference"><!-- wp:heading --><h2 class="wp-block-heading">Markdown Guide</h2><!-- /wp:heading --><!-- wp:paragraph --><p>Use <strong>blocks</strong>.</p><!-- /wp:paragraph --></div><!-- /wp:agent-pilot/agent-skill-reference -->',

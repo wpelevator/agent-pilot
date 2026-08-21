@@ -35,17 +35,24 @@ class Skill {
 	];
 
 	private WP_Post $post;
-
-	private array $blocks;
+	private Content_Blocks $content_blocks;
 
 	public function __construct( WP_Post $post ) {
 		$this->post = $post;
 	}
 
+	private function get_blocks( array $names = [] ): array {
+		if ( ! isset( $this->content_blocks ) ) {
+			$this->content_blocks = Content_Blocks::from_content( $this->post->post_content );
+		}
+
+		return $this->content_blocks->get_blocks( $names );
+	}
+
 	public static function from_post_id( int $post_id ): ?self {
 		$post = get_post( $post_id );
 
-		if ( ! $post instanceof WP_Post || Plugin::POST_TYPE !== $post->post_type ) {
+		if ( ! $post instanceof WP_Post || Plugin::POST_TYPE_AGENT_SKILL !== $post->post_type ) {
 			return null;
 		}
 
@@ -243,40 +250,6 @@ class Skill {
 		}
 
 		return $this->normalize_newlines( implode( "\n\n", $content ) );
-	}
-
-	private function get_all_blocks( ?array $blocks = [] ): array {
-		$all = [];
-
-		foreach ( $blocks as $block ) {
-			$all[] = $block;
-
-			if ( ! empty( $block['innerBlocks'] ) ) {
-				$all = array_merge( $all, $this->get_all_blocks( $block['innerBlocks'] ) );
-			}
-		}
-
-		return $all;
-	}
-
-	private function get_blocks( ?array $names = [] ): array {
-		if ( ! isset( $this->blocks ) ) {
-			$this->blocks = array_map(
-				fn ( array $block ): WP_Block => new WP_Block( $block ),
-				$this->get_all_blocks( parse_blocks( $this->post->post_content ) )
-			);
-		}
-
-		if ( empty( $names ) ) {
-			return $this->blocks;
-		}
-
-		return array_filter(
-			$this->blocks,
-			function ( WP_Block $block ) use ( $names ): bool {
-				return in_array( $block->name, $names, true );
-			}
-		);
 	}
 
 	/**

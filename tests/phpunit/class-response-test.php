@@ -23,11 +23,11 @@ class Response_Test extends \WP_UnitTestCase {
 	}
 
 	public function test_creates_a_json_response_from_data() {
-		$body = '{"url":"https://example.org/agent-skill/example/"}';
+		$body = "{\n    \"url\": \"https://example.org/agent-skill/example/\"\n}\n";
 		$response = Response::as_json( 200, [ 'url' => 'https://example.org/agent-skill/example/' ] );
 
 		$this->assertSame( 'application/json; charset=UTF-8', $response->get_header( 'Content-Type' ), 'JSON responses should use the JSON content type.' );
-		$this->assertSame( $body, $response->get_body(), 'JSON responses should not escape slashes or unicode.' );
+		$this->assertSame( $body, $response->get_body(), 'JSON responses should be pretty-printed without escaping slashes or unicode.' );
 		$this->assertSame( '*', $response->get_header( 'Access-Control-Allow-Origin' ), 'The JSON discovery index should be readable by browser-based clients on other origins.' );
 		$this->assertSame( (string) strlen( $body ), $response->get_header( 'Content-Length' ), 'JSON responses should advertise the exact body length.' );
 		$this->assertSame( '"' . hash( 'sha256', $body ) . '"', $response->get_header( 'ETag' ), 'JSON responses should generate an ETag so clients can make conditional requests.' );

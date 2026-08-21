@@ -2,7 +2,7 @@
 # This file is distributed under the same license as the Agent Pilot plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Agent Pilot 0.3.1\n"
+"Project-Id-Version: Agent Pilot 0.4.0\n"
 "Report-Msgid-Bugs-To: https://github.com/wpelevator/basement\n"
 "Last-Translator: support@wpelevator.com\n"
 "Language-Team: support@wpelevator.com\n"
@@ -16,9 +16,9 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #: agent-pilot.php:3
-#: php/class-plugin.php:48
-#: php/class-plugin.php:49
-#: php/class-plugin.php:75
+#: php/class-plugin.php:59
+#: php/class-plugin.php:60
+#: php/class-plugin.php:91
 msgid "Agent Pilot"
 msgstr ""
 
@@ -37,83 +37,120 @@ msgstr ""
 msgid "https://wpelevator.com"
 msgstr ""
 
-#: php/class-discovery.php:158
+#: php/class-agent-plugin-discovery.php:64 php/class-zip-file.php:24
+msgid "ZipArchive class is not available."
+msgstr ""
+
+#: php/class-zip-file.php:30
+msgid "Failed to create ZIP file."
+msgstr ""
+
+#: php/class-discovery.php:157
 msgid "ZipArchive class is not available. Please ensure the PHP zip extension is installed and enabled."
 msgstr ""
 
-#: php/class-discovery.php:189
-msgid "Failed to create zip file."
-msgstr ""
-
-#: php/class-plugin.php:60
+#: php/class-plugin.php:71
 msgid "Skills"
 msgstr ""
 
-#: php/class-plugin.php:66
+#: php/class-plugin.php:76
+msgid "Plugins"
+msgstr ""
+
+#: php/class-plugin.php:82
 msgid "Settings"
 msgstr ""
 
-#: php/class-plugin.php:76
-msgid "Install Agent Skills"
-msgstr ""
-
-#: php/class-plugin.php:77
-msgid "Install the published skills with:"
-msgstr ""
-
-#: php/class-plugin.php:79
-msgid "Agent Skills discovery index:"
-msgstr ""
-
-#: php/class-plugin.php:108
-msgid "Absolute permalink for the human-readable Agent Skill."
-msgstr ""
-
-#: php/class-plugin.php:131
-msgid "Absolute URL for the generated SKILL.md file."
-msgstr ""
-
-#: php/class-plugin.php:146
-#: php/class-plugin.php:155
-#: php/class-plugin.php:156
+#: php/class-plugin.php:92
+#: php/class-plugin.php:225
+#: php/class-plugin.php:234
+#: php/class-plugin.php:235
 msgid "Agent Skills"
 msgstr ""
 
-#: php/class-plugin.php:147
-#: js/blocks/agent-skill/skill-files-panel.js:31
-msgid "Agent Skill"
+#: php/class-plugin.php:93
+msgid "Install the published skills with:"
 msgstr ""
 
-#: php/class-plugin.php:148
-msgid "Add New Agent Skill"
+#: php/class-plugin.php:94
+msgid "Agent Skills discovery index:"
 msgstr ""
 
-#: php/class-plugin.php:149
-msgid "Edit Agent Skill"
+#: php/class-plugin.php:95
+#: php/class-plugin.php:277
+#: php/class-plugin.php:281
+msgid "Agent Plugins"
 msgstr ""
 
-#: php/class-plugin.php:150
-msgid "New Agent Skill"
+#: php/class-plugin.php:96
+msgid "Create portable Agent Plugin packages, then download and extract the generated ZIP with a compatible installer."
 msgstr ""
 
-#: php/class-plugin.php:151
-msgid "View Agent Skill"
+#: php/class-plugin.php:97
+msgid "Manage Agent Plugins"
 msgstr ""
 
-#: php/class-plugin.php:152
-msgid "Search Agent Skills"
-msgstr ""
-
-#: php/class-plugin.php:153
-msgid "No agent skills found."
-msgstr ""
-
-#: php/class-plugin.php:154
-msgid "No agent skills found in Trash."
+#: php/class-plugin.php:129
+msgid "Absolute permalink for the human-readable Agent Skill."
 msgstr ""
 
 #: php/class-plugin.php:188
+msgid "Absolute URL for the generated SKILL.md file."
+msgstr ""
+
+#: php/class-plugin.php:210
+msgid "Absolute URL for the generated skill ZIP archive."
+msgstr ""
+
+#: php/class-plugin.php:226
+#: js/blocks/agent-skill/skill-files-panel.js:32
+msgid "Agent Skill"
+msgstr ""
+
+#: php/class-plugin.php:227
+msgid "Add New Agent Skill"
+msgstr ""
+
+#: php/class-plugin.php:228
+msgid "Edit Agent Skill"
+msgstr ""
+
+#: php/class-plugin.php:229
+msgid "New Agent Skill"
+msgstr ""
+
+#: php/class-plugin.php:230
+msgid "View Agent Skill"
+msgstr ""
+
+#: php/class-plugin.php:231
+msgid "Search Agent Skills"
+msgstr ""
+
+#: php/class-plugin.php:232
+msgid "No agent skills found."
+msgstr ""
+
+#: php/class-plugin.php:233
+msgid "No agent skills found in Trash."
+msgstr ""
+
+#: php/class-plugin.php:267
 msgid "Agent Skills compatibility requirements."
+msgstr ""
+
+#: php/class-plugin.php:278
+#: js/blocks/agent-plugin/index.js:61
+#: js/blocks/agent-plugin/plugin-files-panel.js:64
+msgid "Agent Plugin"
+msgstr ""
+
+#: php/class-plugin.php:279
+msgid "Add New Agent Plugin"
+msgstr ""
+
+#: php/class-plugin.php:280
+msgid "Edit Agent Plugin"
 msgstr ""
 
 #: php/class-skill.php:231
@@ -130,6 +167,92 @@ msgstr ""
 
 #: update-pilot.php:25
 msgid "Agent Pilot requires the Update Pilot plugin for automatic updates."
+msgstr ""
+
+#: js/blocks/agent-plugin-mcp-server/index.js:19
+msgid "Server definition (JSON)"
+msgstr ""
+
+#: js/blocks/agent-plugin-mcp-server/index.js:23
+msgid "Agent Pilot preserves this JSON object without validating its MCP schema. Do not include secrets."
+msgstr ""
+
+#: js/blocks/agent-plugin-mcp-server/index.js:27
+msgid "Enter MCP server definition…"
+msgstr ""
+
+#: js/blocks/agent-plugin-mcp-server/index.js:40
+msgid "Agent Plugin MCP Server"
+msgstr ""
+
+#: js/blocks/agent-plugin-mcp-server/index.js:50
+msgid "Server name"
+msgstr ""
+
+#: js/blocks/agent-plugin-skill/index.js:21
+msgid "Plugin Skill"
+msgstr ""
+
+#: js/blocks/agent-plugin-skill/index.js:25
+msgid "Agent Plugin Skill"
+msgstr ""
+
+#: js/blocks/agent-plugin-skill/index.js:29
+msgid "Search for an Agent Skill to include in this plugin."
+msgstr ""
+
+#: js/blocks/agent-plugin/index.js:31
+msgid "Add Skill"
+msgstr ""
+
+#: js/blocks/agent-plugin/index.js:35
+msgid "Add MCP Server"
+msgstr ""
+
+#: js/blocks/agent-plugin/index.js:65
+#: js/blocks/agent-skill/edit.js:129
+msgid "Name"
+msgstr ""
+
+#: js/blocks/agent-plugin/index.js:76
+msgid "Lowercase letters, numbers, hyphens, and periods."
+msgstr ""
+
+#: js/blocks/agent-plugin/index.js:83
+#: js/blocks/agent-skill/edit.js:152
+msgid "Description"
+msgstr ""
+
+#: js/blocks/agent-plugin/index.js:88
+msgid "License"
+msgstr ""
+
+#: js/blocks/agent-plugin/index.js:102
+msgid "Add plugin component"
+msgstr ""
+
+#: js/blocks/agent-plugin/plugin-files-panel.js:69
+msgid "Plugin Manifest"
+msgstr ""
+
+#: js/blocks/agent-plugin/plugin-files-panel.js:70
+msgid "Save with a valid name to generate the plugin manifest URL."
+msgstr ""
+
+#: js/blocks/agent-plugin/plugin-files-panel.js:78
+msgid "MCP Configuration"
+msgstr ""
+
+#: js/blocks/agent-plugin/plugin-files-panel.js:79
+msgid "Add an MCP server and save to generate the MCP configuration URL."
+msgstr ""
+
+#: js/blocks/agent-plugin/plugin-files-panel.js:87
+msgid "Plugin Archive"
+msgstr ""
+
+#: js/blocks/agent-plugin/plugin-files-panel.js:88
+msgid "Save with a valid name to generate the plugin archive URL."
 msgstr ""
 
 #: js/blocks/agent-skill-asset/edit.js:47
@@ -169,15 +292,15 @@ msgstr ""
 msgid "(no title)"
 msgstr ""
 
-#: js/blocks/agent-skill-reference/post-selector.js:112
-msgid "Use Existing Content"
-msgstr ""
-
-#: js/blocks/agent-skill-reference/post-selector.js:113
+#: js/blocks/agent-skill-reference/post-selector.js:18
 msgid "Use an existing post or page instead of the custom content below."
 msgstr ""
 
-#: js/blocks/agent-skill-reference/post-selector.js:121
+#: js/blocks/agent-skill-reference/post-selector.js:22
+msgid "Use Existing Content"
+msgstr ""
+
+#: js/blocks/agent-skill-reference/post-selector.js:129
 msgid "Search posts, pages, and other content…"
 msgstr ""
 
@@ -222,16 +345,8 @@ msgstr ""
 msgid "Skill Front Matter"
 msgstr ""
 
-#: js/blocks/agent-skill/edit.js:129
-msgid "Name"
-msgstr ""
-
 #: js/blocks/agent-skill/edit.js:143
 msgid "Skill name using lowercase letters, numbers, and hyphens (similar to post slugs)."
-msgstr ""
-
-#: js/blocks/agent-skill/edit.js:152
-msgid "Description"
 msgstr ""
 
 #: js/blocks/agent-skill/edit.js:159
@@ -254,12 +369,20 @@ msgstr ""
 msgid "Add skill resource"
 msgstr ""
 
-#: js/blocks/agent-skill/skill-files-panel.js:36
+#: js/blocks/agent-skill/skill-files-panel.js:37
 msgid "Skill File"
 msgstr ""
 
-#: js/blocks/agent-skill/skill-files-panel.js:49
+#: js/blocks/agent-skill/skill-files-panel.js:50
 msgid "Save with a valid name to generate the skill file URL."
+msgstr ""
+
+#: js/blocks/agent-skill/skill-files-panel.js:60
+msgid "Skill Archive"
+msgstr ""
+
+#: js/blocks/agent-skill/skill-files-panel.js:73
+msgid "Save with a valid name to generate the skill archive URL."
 msgstr ""
 
 #: js/components/skill-section-panel.js:114
@@ -270,6 +393,26 @@ msgstr ""
 #: js/components/skill-section-panel.js:120
 #, js-format
 msgid "Copy %s"
+msgstr ""
+
+#: js/blocks/agent-plugin-mcp-server/block.json
+msgctxt "block title"
+msgid "Agent MCP Server"
+msgstr ""
+
+#: js/blocks/agent-plugin-skill/block.json
+msgctxt "block title"
+msgid "Agent Plugin Skill"
+msgstr ""
+
+#: js/blocks/agent-plugin/block.json
+msgctxt "block title"
+msgid "Agent Plugin"
+msgstr ""
+
+#: js/blocks/agent-plugin/block.json
+msgctxt "block description"
+msgid "Author a portable Agent Plugin."
 msgstr ""
 
 #: js/blocks/agent-skill-asset/block.json

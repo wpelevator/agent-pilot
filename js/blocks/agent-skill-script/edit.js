@@ -34,7 +34,7 @@ export default function Edit( { attributes, setAttributes } ) {
 			fallback={
 				<textarea
 					aria-label={ codeLabel }
-					className="agent-pilot-skill-script__textarea"
+					className="agent-pilot-code-editor__textarea"
 					placeholder={ codePlaceholder }
 					readOnly
 					value={ attributes.content || '' }

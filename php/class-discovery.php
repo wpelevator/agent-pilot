@@ -3,7 +3,6 @@
 namespace WPElevator\Agent_Pilot;
 
 use RuntimeException;
-use ZipArchive;
 use WP_Post;
 
 class Discovery {
@@ -57,12 +56,12 @@ class Discovery {
 		add_rewrite_rule(
 			sprintf(
 				'%s/([^/]+)/([A-Za-z\.\-]+)$', // TODO: Consider reading this from existing post rewrite rules instead.
-				Plugin::PERMALINK_PREFIX,
+				Plugin::PERMALINK_PREFIX_AGENT_SKILL,
 			),
 			sprintf(
 				'index.php?post_type=%s&%s=$matches[1]&%s=$matches[2]',
-				Plugin::POST_TYPE,
-				Plugin::PERMALINK_PREFIX,
+				Plugin::POST_TYPE_AGENT_SKILL,
+				Plugin::PERMALINK_PREFIX_AGENT_SKILL,
 				self::SKILL_FORMAT
 			),
 			'top'
@@ -154,7 +153,7 @@ class Discovery {
 	}
 
 	public function get_skill_zip_file( Skill $skill ): string {
-		if ( ! class_exists( 'ZipArchive' ) ) {
+		if ( ! Zip_File::is_supported() ) {
 			throw new RuntimeException( __( 'ZipArchive class is not available. Please ensure the PHP zip extension is installed and enabled.', 'wpelevator-agent-pilot' ) );
 		}
 
@@ -168,25 +167,9 @@ class Discovery {
 			return $zip_cache_file;
 		}
 
-		$zip_file = new ZipArchive();
-		if ( true === $zip_file->open( $zip_cache_file, ZipArchive::CREATE | ZipArchive::OVERWRITE ) ) {
-			$last_modified = $skill->get_last_modified();
+		$zip_file = new Zip_File( $zip_cache_file, $skill->get_files() );
 
-			foreach ( $skill->get_files() as $filename => $content ) {
-				$zip_file->addFromString( $filename, $content );
-
-				// Ensure the archives are byte-identical (same hash) when regenerating the ZIP with the same content.
-				if ( $last_modified && method_exists( $zip_file, 'setMtimeName' ) ) { // Requires PHP 8.0 with libzip 1.0+.
-					$zip_file->setMtimeName( $filename, $last_modified );
-				}
-			}
-
-			$zip_file->close();
-
-			return $zip_cache_file;
-		}
-
-		throw new RuntimeException( __( 'Failed to create zip file.', 'wpelevator-agent-pilot' ) );
+		return $zip_file->get_file( $skill->get_last_modified() );
 	}
 
 	public function action_serve_discovery() {
@@ -204,9 +187,9 @@ class Discovery {
 
 		$skill_format = strtolower( $skill_format ); // Normalize to lowercase for easier matching.
 		$queried_object = get_queried_object();
-		$name = (string) get_query_var( Plugin::PERMALINK_PREFIX ); // TODO: this will be empty if the post type is not public.
+		$name = (string) get_query_var( Plugin::PERMALINK_PREFIX_AGENT_SKILL ); // TODO: this will be empty if the post type is not public.
 
-		if ( $queried_object instanceof WP_Post && Plugin::POST_TYPE === $queried_object->post_type ) {
+		if ( $queried_object instanceof WP_Post && Plugin::POST_TYPE_AGENT_SKILL === $queried_object->post_type ) {
 			$skill = new Skill( $queried_object );
 		} elseif ( ! empty( $name ) ) {
 			$skill = $this->skills->get_public_skill( $name );

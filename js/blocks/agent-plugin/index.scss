@@ -1,0 +1,23 @@
+.agent-pilot-agent-plugin-components {
+	margin-block-start: 16px;
+
+	> .block-editor-inner-blocks > .block-editor-block-list__layout {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+	}
+}
+
+.agent-pilot-agent-plugin__fields,
+.agent-pilot-agent-plugin-mcp-server__fields {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.agent-pilot-agent-plugin-component-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem;
+	margin-block-start: 1rem;
+}

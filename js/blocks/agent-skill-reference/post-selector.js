@@ -14,7 +14,16 @@ function resultToOption( result ) {
 	};
 }
 
-export default function PostSelector( { postId, onChange } ) {
+export default function PostSelector( {
+	help = __(
+		'Use an existing post or page instead of the custom content below.',
+		'wpelevator-agent-pilot'
+	),
+	label = __( 'Use Existing Content', 'wpelevator-agent-pilot' ),
+	postId,
+	onChange,
+	subtype,
+} ) {
 	const [ selectedOption, setSelectedOption ] = useState( null );
 	const [ searchOptions, setSearchOptions ] = useState( [] );
 	const [ searchTerm, setSearchTerm ] = useState( '' );
@@ -38,6 +47,7 @@ export default function PostSelector( { postId, onChange } ) {
 				per_page: 1,
 				type: 'post',
 				_fields: 'id,title,url,subtype',
+				...( subtype ? { subtype } : {} ),
 			} ),
 		} )
 			.then( ( results ) => {
@@ -61,7 +71,7 @@ export default function PostSelector( { postId, onChange } ) {
 		return () => {
 			isCurrent = false;
 		};
-	}, [ postId ] );
+	}, [ postId, subtype ] );
 
 	useEffect( () => {
 		let isCurrent = true;
@@ -73,6 +83,7 @@ export default function PostSelector( { postId, onChange } ) {
 					per_page: 20,
 					type: 'post',
 					_fields: 'id,title,url,subtype',
+					...( subtype ? { subtype } : {} ),
 				} ),
 			} )
 				.then( ( results ) => {
@@ -96,7 +107,7 @@ export default function PostSelector( { postId, onChange } ) {
 			isCurrent = false;
 			clearTimeout( timeoutId );
 		};
-	}, [ searchTerm ] );
+	}, [ searchTerm, subtype ] );
 
 	const options = selectedOption
 		? [
@@ -109,11 +120,8 @@ export default function PostSelector( { postId, onChange } ) {
 
 	return (
 		<ComboboxControl
-			label={ __( 'Use Existing Content', 'wpelevator-agent-pilot' ) }
-			help={ __(
-				'Use an existing post or page instead of the custom content below.',
-				'wpelevator-agent-pilot'
-			) }
+			label={ label }
+			help={ help }
 			value={ postId ? String( postId ) : null }
 			options={ options }
 			onFilterValueChange={ setSearchTerm }

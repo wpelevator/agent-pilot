@@ -4,6 +4,7 @@ import { registerBlockType } from '@wordpress/blocks';
 import metadata from './block.json';
 import Edit from './edit';
 import 'codemirror/lib/codemirror.css';
+import '../../components/code-editor.scss';
 import './index.scss';
 
 function Save( { attributes } ) {

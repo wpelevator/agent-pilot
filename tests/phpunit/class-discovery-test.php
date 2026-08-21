@@ -25,7 +25,7 @@ class Discovery_Test extends \WP_UnitTestCase {
 
 		Plugin::action_register_post_type();
 
-		$this->skills = new Skills( Plugin::POST_TYPE );
+		$this->skills = new Skills( Plugin::POST_TYPE_AGENT_SKILL );
 		$this->response_emitter = $this->getMockBuilder( Response_Emitter::class )
 			->setConstructorArgs( [ new Request() ] )
 			->onlyMethods( [ 'send' ] )
@@ -60,8 +60,8 @@ class Discovery_Test extends \WP_UnitTestCase {
 		$this->assertSame(
 			sprintf(
 				'index.php?post_type=%s&%s=$matches[1]&%s=$matches[2]',
-				Plugin::POST_TYPE,
-				Plugin::PERMALINK_PREFIX,
+				Plugin::POST_TYPE_AGENT_SKILL,
+				Plugin::PERMALINK_PREFIX_AGENT_SKILL,
 				Discovery::SKILL_FORMAT
 			),
 			$GLOBALS['wp_rewrite']->extra_rules_top[ $pattern ],
@@ -199,7 +199,7 @@ class Discovery_Test extends \WP_UnitTestCase {
 	public function test_skill_archives_are_reproducible_for_unchanged_skills() {
 		$post_id = self::factory()->post->create(
 			[
-				'post_type' => Plugin::POST_TYPE,
+				'post_type' => Plugin::POST_TYPE_AGENT_SKILL,
 				'post_name' => 'stable-skill',
 				'post_title' => 'Stable Skill',
 				'post_excerpt' => 'Stable description.',
@@ -286,7 +286,7 @@ class Discovery_Test extends \WP_UnitTestCase {
 	private function create_skill( string $name, string $description, string $status ): Skill {
 		$post_id = self::factory()->post->create(
 			[
-				'post_type' => Plugin::POST_TYPE,
+				'post_type' => Plugin::POST_TYPE_AGENT_SKILL,
 				'post_name' => $name,
 				'post_title' => ucwords( str_replace( '-', ' ', $name ) ),
 				'post_excerpt' => $description,
@@ -307,11 +307,11 @@ class Discovery_Test extends \WP_UnitTestCase {
 		if ( $as_queried_object ) {
 			$wp_query->queried_object    = $skill->get_post();
 			$wp_query->queried_object_id = $skill->get_id();
-			set_query_var( Plugin::PERMALINK_PREFIX, '' );
+			set_query_var( Plugin::PERMALINK_PREFIX_AGENT_SKILL, '' );
 		} else {
 			$wp_query->queried_object    = null;
 			$wp_query->queried_object_id = 0;
-			set_query_var( Plugin::PERMALINK_PREFIX, $skill->get_name() );
+			set_query_var( Plugin::PERMALINK_PREFIX_AGENT_SKILL, $skill->get_name() );
 		}
 
 		$this->discovery->action_serve_file();

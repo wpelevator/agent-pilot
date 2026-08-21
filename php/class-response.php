@@ -32,7 +32,10 @@ class Response {
 	}
 
 	public static function as_json( int $status, array $data, array $headers = [] ): self {
-		$body = (string) wp_json_encode( $data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+		$body = (string) wp_json_encode(
+			$data,
+			JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION
+		) . "\n";
 
 		return new self(
 			$status,

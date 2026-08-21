@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 0.4.0 (2026-08-21)
+
+- feat: add an Agent Plugin post type and block-editor workflow for composing portable packages from published Agent Skills and optional MCP server definitions.
+- feat: generate Agent Plugin `plugin.json`, optional `mcp.json`, and deterministic `plugin.zip` artifacts, with public routes, draft previews, validation, and editor sidebar links.
+- feat: keep packaged skills live so changes to a selected skill are reflected in newly generated Agent Plugin archives without re-saving the plugin.
+- feat: add generated skill ZIP links to the Agent Skill editor sidebar.
+- change: pretty-print generated JSON artifacts and share deterministic ZIP archive generation between Agent Skills and Agent Plugins.
+- docs: document Agent Plugin authoring, manifest fields, artifact routes, package layout, and MCP credential safety.
+
 ## 0.3.0 (2026-08-11)
 
 - fix: pin light color scheme on skill section panels so headings, labels, and inputs stay legible when the active theme uses a dark editor color scheme ([#151](https://github.com/wpelevator/basement/pull/151)).
