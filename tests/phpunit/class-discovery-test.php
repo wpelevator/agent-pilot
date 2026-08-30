@@ -305,11 +305,11 @@ class Discovery_Test extends \WP_UnitTestCase {
 		set_query_var( Discovery::SKILL_FORMAT, $format );
 
 		if ( $as_queried_object ) {
-			$wp_query->queried_object    = $skill->get_post();
+			$wp_query->queried_object = $skill->get_post();
 			$wp_query->queried_object_id = $skill->get_id();
 			set_query_var( Plugin::PERMALINK_PREFIX_AGENT_SKILL, '' );
 		} else {
-			$wp_query->queried_object    = null;
+			$wp_query->queried_object = null;
 			$wp_query->queried_object_id = 0;
 			set_query_var( Plugin::PERMALINK_PREFIX_AGENT_SKILL, $skill->get_name() );
 		}

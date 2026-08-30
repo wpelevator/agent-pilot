@@ -37,12 +37,9 @@ msgstr ""
 msgid "https://wpelevator.com"
 msgstr ""
 
-#: php/class-agent-plugin-discovery.php:64 php/class-zip-file.php:24
+#: php/class-agent-plugin-discovery.php:64
+#: php/class-zip-file.php:24
 msgid "ZipArchive class is not available."
-msgstr ""
-
-#: php/class-zip-file.php:30
-msgid "Failed to create ZIP file."
 msgstr ""
 
 #: php/class-discovery.php:157
@@ -153,39 +150,39 @@ msgstr ""
 msgid "Edit Agent Plugin"
 msgstr ""
 
-#: php/class-skill.php:231
+#: php/class-skill.php:238
 msgid "References"
 msgstr ""
 
-#: php/class-skill.php:236
+#: php/class-skill.php:243
 msgid "Assets"
 msgstr ""
 
-#: php/class-skill.php:241
+#: php/class-skill.php:248
 msgid "Scripts"
+msgstr ""
+
+#: php/class-zip-file.php:30
+msgid "Failed to create ZIP file."
 msgstr ""
 
 #: update-pilot.php:25
 msgid "Agent Pilot requires the Update Pilot plugin for automatic updates."
 msgstr ""
 
-#: js/blocks/agent-plugin-mcp-server/index.js:19
+#: js/blocks/agent-plugin-mcp-server/index.js:23
 msgid "Server definition (JSON)"
 msgstr ""
 
-#: js/blocks/agent-plugin-mcp-server/index.js:23
+#: js/blocks/agent-plugin-mcp-server/index.js:27
 msgid "Agent Pilot preserves this JSON object without validating its MCP schema. Do not include secrets."
 msgstr ""
 
-#: js/blocks/agent-plugin-mcp-server/index.js:27
-msgid "Enter MCP server definition…"
-msgstr ""
-
-#: js/blocks/agent-plugin-mcp-server/index.js:40
+#: js/blocks/agent-plugin-mcp-server/index.js:41
 msgid "Agent Plugin MCP Server"
 msgstr ""
 
-#: js/blocks/agent-plugin-mcp-server/index.js:50
+#: js/blocks/agent-plugin-mcp-server/index.js:51
 msgid "Server name"
 msgstr ""
 
