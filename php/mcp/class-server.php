@@ -209,11 +209,6 @@ class Server {
 			return $this->respond( null, 404 );
 		}
 
-		if ( ! $this->is_origin_allowed( $request ) ) {
-			// DNS rebinding protection, required of every Streamable HTTP server.
-			return $this->respond( null, 403 );
-		}
-
 		if ( ! $this->tools->is_available() ) {
 			return $this->respond(
 				Json_Rpc::error( null, Json_Rpc::INTERNAL_ERROR, __( 'This site does not have the WordPress Abilities API.', 'wpelevator-agent-pilot' ) ),
@@ -224,12 +219,24 @@ class Server {
 		/*
 		 * Authenticate at the HTTP transport boundary, before method or message
 		 * dispatch. OAuth discovery clients probe with different methods, and all
-		 * of them need the same authoritative, least-privilege challenge.
+		 * of them need the same authoritative challenge.
 		 */
 		$identity = $this->authentication->authenticate( [ Authentication::SCOPE_READ ] );
 
 		if ( is_wp_error( $identity ) ) {
 			return $this->unauthorized( $identity );
+		}
+
+		/*
+		 * DNS rebinding protection, required of every Streamable HTTP server,
+		 * applied after authentication rather than before it. Both checks have to
+		 * pass and neither dispatches anything, so the order does not weaken the
+		 * protection; answering the challenge first is what lets a client that
+		 * has never authenticated discover the authorization server instead of
+		 * meeting a bare 403 it cannot act on.
+		 */
+		if ( ! $this->is_origin_allowed( $request ) ) {
+			return $this->respond( null, 403 );
 		}
 
 		$method = strtoupper( $request->get_method() );

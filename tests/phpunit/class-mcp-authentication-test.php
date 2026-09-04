@@ -155,14 +155,17 @@ class MCP_Authentication_Test extends MCP_Test_Case {
 			'The challenge should point at this endpoint\'s own RFC 9728 metadata document.'
 		);
 		$this->assertStringContainsString(
-			'scope="' . Authentication::SCOPE_READ . '"',
+			'scope="' . Authentication::SCOPE_READ . ' ' . Authentication::SCOPE_WRITE . '"',
 			$challenge,
-			'The initial challenge should authoritatively request only the read scope needed for basic MCP discovery.'
+			'The discovery challenge must advertise every scope this resource offers, because a client treats it as authoritative and would otherwise connect read-only and fail the first write tool.'
 		);
-		$this->assertStringNotContainsString(
-			Authentication::SCOPE_WRITE,
-			$challenge,
-			'The initial challenge should not request write access before a client invokes a write tool.'
+	}
+
+	public function test_the_advertised_scopes_follow_the_registered_resource() {
+		$this->assertSame(
+			oauth_pilot()->get_resources()->get( $this->resource_uri )->get_scopes(),
+			$this->authentication->get_advertised_scopes(),
+			'The challenge advertises what the resource actually offers, so a site that filters the resource is advertised accurately.'
 		);
 	}
 

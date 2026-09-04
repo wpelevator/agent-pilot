@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.7.0 (2026-09-05)
+
+- Fixed an unauthenticated request from a disallowed browser origin being refused with a bare 403 before the OAuth challenge was sent, leaving a browser-based client no way to discover the authorization server. Origin validation now runs after authentication. Both checks still have to pass and neither dispatches anything, so DNS rebinding protection is unchanged.
+- Fixed the MCP discovery challenge naming only `wp:read`, which connected every client read-only and made the first write tool fail. A client applying the MCP scope selection strategy treats the challenge as authoritative and asks for nothing more, so advertising the transport's own least-privilege requirement decided the whole connection: Claude and every other conformant client completed consent with read access and then had no way to run a write ability short of a step-up flow. The challenge now advertises every scope the resource offers, read from the registered resource so that a filtered resource stays accurate, which produces one consent screen covering read and write tools alike. Per-operation challenges still name exactly the scope that operation needs, and OAuth Pilot narrows the wider request to what the approving user can actually grant, so asking for more costs no user access.
+
 ## 0.6.0 (2026-09-04)
 
 - fix: advertise the least-privilege `wp:read` scope in the initial MCP OAuth challenge, authenticate every HTTP method before transport or JSON-RPC dispatch, and identify write-scope step-up challenges with `insufficient_scope`, so clients can discover and expand the correct protected-resource grant.

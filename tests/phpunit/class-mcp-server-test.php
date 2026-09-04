@@ -44,6 +44,23 @@ class MCP_Server_Test extends MCP_Test_Case {
 		$this->assertSame( 403, $response->get_status(), 'Origin validation is what stops a page the user happens to be visiting from driving this server through their browser.' );
 	}
 
+	public function test_an_unauthenticated_foreign_origin_is_challenged_before_it_is_refused() {
+		wp_set_current_user( 0 );
+
+		$response = $this->post( $this->message( 'ping' ), [ 'origin' => 'https://evil.example' ] );
+
+		$this->assertSame(
+			401,
+			$response->get_status(),
+			'A client that has never authenticated must receive the OAuth challenge rather than a bare 403 it cannot act on.'
+		);
+		$this->assertArrayHasKey(
+			'WWW-Authenticate',
+			$response->get_headers(),
+			'The challenge is what lets that client discover the authorization server and come back with a token.'
+		);
+	}
+
 	public function test_the_site_own_origin_is_allowed() {
 		$response = $this->post( $this->message( 'ping' ), [ 'origin' => home_url() ] );
 

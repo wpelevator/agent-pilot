@@ -155,9 +155,41 @@ class Authentication {
 			__( 'Authentication is required to use this MCP server.', 'wpelevator-agent-pilot' ),
 			[
 				'status' => 401,
-				'www_authenticate' => $this->get_challenge( $required_scopes ),
+				'www_authenticate' => $this->get_challenge( $this->get_advertised_scopes() ),
 			]
 		);
+	}
+
+	/**
+	 * The scopes the discovery challenge advertises, which is everything this
+	 * resource offers rather than the least privilege the transport itself
+	 * needs.
+	 *
+	 * A client applying the MCP scope selection strategy treats the challenge as
+	 * authoritative and asks for nothing more, so naming only `wp:read` here
+	 * would connect every client read-only and fail the first write tool it
+	 * tried. Advertising the whole set produces one consent screen covering read
+	 * and write tools alike, and costs no user access: OAuth Pilot narrows the
+	 * request to the scopes the approving user can actually grant, so someone
+	 * without `edit_posts` is offered the read scope alone instead of being
+	 * refused. Per-operation challenges still name exactly the scope that
+	 * operation needs.
+	 *
+	 * The set comes from the registered resource so that a site filtering the
+	 * resource's scopes is advertised accurately.
+	 *
+	 * @return string[]
+	 */
+	public function get_advertised_scopes(): array {
+		if ( $this->is_oauth_available() ) {
+			$resource = \WPElevator\OAuth_Pilot\plugin()->get_resources()->get( $this->get_resource_uri() );
+
+			if ( $resource ) {
+				return $resource->get_scopes();
+			}
+		}
+
+		return [ self::SCOPE_READ, self::SCOPE_WRITE ];
 	}
 
 	/**

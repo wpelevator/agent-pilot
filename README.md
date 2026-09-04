@@ -285,10 +285,10 @@ Nothing is configured on either side. Agent Pilot registers the MCP endpoint as 
 
 ```text
 HTTP/1.1 401 Unauthorized
-WWW-Authenticate: Bearer scope="wp:read", resource_metadata="https://example.com/.well-known/oauth-protected-resource/wp-json/agent-pilot/v1/mcp"
+WWW-Authenticate: Bearer scope="wp:read wp:write", resource_metadata="https://example.com/.well-known/oauth-protected-resource/wp-json/agent-pilot/v1/mcp"
 ```
 
-The initial challenge authoritatively requests only `wp:read`, the least privilege needed to initialize the server and list its read-only tools. Agent Pilot authenticates every HTTP method before transport or JSON-RPC dispatch, so OAuth discovery probes receive the same challenge whether they use `GET` or `POST`. From there the client discovers the authorization server, registers itself, and a human approves the connection once.
+The discovery challenge advertises every scope this resource offers, not the least privilege the transport itself needs. Under the MCP scope selection strategy a client treats the challenge as authoritative and asks for nothing more, so naming only `wp:read` would connect every client read-only and fail the first write tool it tried. Advertising the whole set produces a single consent screen covering read and write tools alike, and costs no user access: OAuth Pilot narrows the request to the scopes the approving user can actually grant rather than refusing it, so an author is offered both permissions and a subscriber the read one alone. The set is read from the registered resource, so a site that filters the resource's scopes is advertised accurately. Agent Pilot authenticates every HTTP method before transport or JSON-RPC dispatch, so OAuth discovery probes receive the same challenge whether they use `GET` or `POST`. From there the client discovers the authorization server, registers itself, and a human approves the connection once.
 
 The MCP endpoint is a **separate audience** from the WordPress REST API, so a token minted for `/wp-json/` cannot call MCP and vice versa. Because of that separation the endpoint requires an RFC 8707 `resource` parameter, which the MCP authorization spec already obliges clients to send.
 
@@ -314,7 +314,7 @@ Implemented methods: `initialize`, `notifications/initialized`, `server/discover
 
 Every response is `application/json`. The transport permits either that or an SSE stream, and since this server never sends a message the client did not ask for, it does not open one — a `GET` is answered with `405`, as the specification requires of a server that offers no stream. Resources, prompts, streaming and `notifications/tools/list_changed` are not implemented.
 
-Requests without an `Origin` header are accepted so desktop and server-side MCP clients can connect. When a browser sends the header, its origin must match the site's own address unless an integration extends the allowlist with `agent_pilot__mcp_allowed_origins`.
+Requests without an `Origin` header are accepted so desktop and server-side MCP clients can connect. When a browser sends the header, its origin must match the site's own address unless an integration extends the allowlist with `agent_pilot__mcp_allowed_origins`. The check runs after authentication, so a client that has never authenticated receives the OAuth challenge it can act on rather than a bare 403; both checks still have to pass and neither dispatches anything.
 
 ### Filters
 
