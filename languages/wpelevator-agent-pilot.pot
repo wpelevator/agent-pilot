@@ -2,7 +2,7 @@
 # This file is distributed under the same license as the Agent Pilot plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Agent Pilot 0.5.0\n"
+"Project-Id-Version: Agent Pilot 0.7.0\n"
 "Report-Msgid-Bugs-To: https://github.com/wpelevator/basement\n"
 "Last-Translator: support@wpelevator.com\n"
 "Language-Team: support@wpelevator.com\n"
@@ -227,38 +227,38 @@ msgstr ""
 msgid "The request body is not valid JSON."
 msgstr ""
 
-#: php/mcp/class-server.php:219
+#: php/mcp/class-server.php:214
 msgid "This site does not have the WordPress Abilities API."
 msgstr ""
 
-#: php/mcp/class-server.php:259
+#: php/mcp/class-server.php:277
 msgid "The request body is not a single JSON-RPC message."
 msgstr ""
 
-#: php/mcp/class-server.php:266
+#: php/mcp/class-server.php:284
 msgid "The request is not a valid JSON-RPC 2.0 message."
 msgstr ""
 
-#: php/mcp/class-server.php:287
+#: php/mcp/class-server.php:305
 msgid "Unsupported protocol version"
 msgstr ""
 
 #. translators: %s: the requested JSON-RPC method name.
-#: php/mcp/class-server.php:363
+#: php/mcp/class-server.php:375
 #, php-format
 msgid "Method not found: %s"
 msgstr ""
 
-#: php/mcp/class-server.php:405
+#: php/mcp/class-server.php:417
 msgid "A tool name is required."
 msgstr ""
 
-#: php/mcp/class-server.php:429
+#: php/mcp/class-server.php:441
 msgid "WordPress"
 msgstr ""
 
 #. translators: %s: the site name.
-#: php/mcp/class-server.php:444
+#: php/mcp/class-server.php:456
 #, php-format
 msgid "Tools on this server are WordPress Abilities published by %s. Each tool runs with the permissions of the authenticated WordPress user, so a call may be refused even when the tool is listed."
 msgstr ""
