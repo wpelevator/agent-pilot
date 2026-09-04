@@ -221,6 +221,17 @@ class Server {
 			);
 		}
 
+		/*
+		 * Authenticate at the HTTP transport boundary, before method or message
+		 * dispatch. OAuth discovery clients probe with different methods, and all
+		 * of them need the same authoritative, least-privilege challenge.
+		 */
+		$identity = $this->authentication->authenticate( [ Authentication::SCOPE_READ ] );
+
+		if ( is_wp_error( $identity ) ) {
+			return $this->unauthorized( $identity );
+		}
+
 		$method = strtoupper( $request->get_method() );
 
 		if ( 'GET' === $method ) {
@@ -236,7 +247,7 @@ class Server {
 			return $this->handle_delete( $request );
 		}
 
-		return $this->handle_post( $request );
+		return $this->handle_post( $request, $identity );
 	}
 
 	private function handle_delete( WP_REST_Request $request ): WP_REST_Response {
@@ -251,7 +262,7 @@ class Server {
 		return $this->respond( null, 204 );
 	}
 
-	private function handle_post( WP_REST_Request $request ): WP_REST_Response {
+	private function handle_post( WP_REST_Request $request, Identity $identity ): WP_REST_Response {
 		$message = Json_Rpc::parse( (string) $request->get_body() );
 
 		if ( null === $message ) {
@@ -299,12 +310,6 @@ class Server {
 		// A session the server has forgotten must be reported so the client starts a new one.
 		if ( '' !== $session_id && ! $this->sessions->exists( $session_id ) ) {
 			return $this->respond( null, 404 );
-		}
-
-		$identity = $this->authentication->authenticate();
-
-		if ( is_wp_error( $identity ) ) {
-			return $this->unauthorized( $identity );
 		}
 
 		if ( Json_Rpc::is_notification( $message ) ) {
@@ -566,7 +571,11 @@ class Server {
 		$code = (int) ( $data['code'] ?? Json_Rpc::INVALID_PARAMS );
 
 		if ( 403 === $status ) {
-			$this->challenge = $this->authentication->get_challenge( (array) ( $data['scope'] ?? [] ) );
+			$this->challenge = $this->authentication->get_challenge(
+				(array) ( $data['scope'] ?? [] ),
+				'insufficient_scope',
+				$error->get_error_message()
+			);
 
 			return $this->respond(
 				Json_Rpc::error( $id, Json_Rpc::INVALID_REQUEST, $error->get_error_message() ),

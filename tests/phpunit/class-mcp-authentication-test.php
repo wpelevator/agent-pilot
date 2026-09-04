@@ -2,7 +2,9 @@
 
 namespace WPElevator\Agent_Pilot_Tests;
 
+use WP_REST_Request;
 use WPElevator\Agent_Pilot\MCP\Authentication;
+use WPElevator\Agent_Pilot\MCP\Server;
 use WPElevator\OAuth_Pilot\Token\Token;
 use function WPElevator\OAuth_Pilot\plugin as oauth_pilot;
 
@@ -152,6 +154,30 @@ class MCP_Authentication_Test extends MCP_Test_Case {
 			$challenge,
 			'The challenge should point at this endpoint\'s own RFC 9728 metadata document.'
 		);
+		$this->assertStringContainsString(
+			'scope="' . Authentication::SCOPE_READ . '"',
+			$challenge,
+			'The initial challenge should authoritatively request only the read scope needed for basic MCP discovery.'
+		);
+		$this->assertStringNotContainsString(
+			Authentication::SCOPE_WRITE,
+			$challenge,
+			'The initial challenge should not request write access before a client invokes a write tool.'
+		);
+	}
+
+	public function test_a_tokenless_get_receives_the_same_oauth_challenge_before_method_dispatch() {
+		$post_response = $this->post( $this->message( 'tools/list' ) );
+		$get_response = $this->serve(
+			new WP_REST_Request( 'GET', '/' . Server::REST_NAMESPACE . '/' . Server::REST_ROUTE )
+		);
+
+		$this->assertSame( 401, $get_response->get_status(), 'An unauthenticated GET probe must receive the OAuth challenge before the transport rejects unsupported streams.' );
+		$this->assertSame(
+			$post_response->get_headers()['WWW-Authenticate'],
+			$get_response->get_headers()['WWW-Authenticate'],
+			'GET and POST discovery probes should receive the same resource metadata pointer and initial read scope.'
+		);
 	}
 
 	public function test_a_valid_token_authenticates_the_request_as_its_user() {
@@ -235,6 +261,16 @@ class MCP_Authentication_Test extends MCP_Test_Case {
 			403,
 			$response->get_status(),
 			'An ability that never declared itself readonly requires the write scope, which a read token does not carry.'
+		);
+		$this->assertStringContainsString(
+			'error="insufficient_scope"',
+			$response->get_headers()['WWW-Authenticate'] ?? '',
+			'A refused write call should identify the failure as an OAuth scope step-up.'
+		);
+		$this->assertStringContainsString(
+			'scope="' . Authentication::SCOPE_WRITE . '"',
+			$response->get_headers()['WWW-Authenticate'] ?? '',
+			'The step-up challenge should request the write scope needed by the attempted tool.'
 		);
 	}
 

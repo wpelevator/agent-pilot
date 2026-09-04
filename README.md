@@ -285,10 +285,10 @@ Nothing is configured on either side. Agent Pilot registers the MCP endpoint as 
 
 ```text
 HTTP/1.1 401 Unauthorized
-WWW-Authenticate: Bearer resource_metadata="https://example.com/.well-known/oauth-protected-resource/wp-json/agent-pilot/v1/mcp"
+WWW-Authenticate: Bearer scope="wp:read", resource_metadata="https://example.com/.well-known/oauth-protected-resource/wp-json/agent-pilot/v1/mcp"
 ```
 
-From there the client discovers the authorization server, registers itself, and a human approves the connection once.
+The initial challenge authoritatively requests only `wp:read`, the least privilege needed to initialize the server and list its read-only tools. Agent Pilot authenticates every HTTP method before transport or JSON-RPC dispatch, so OAuth discovery probes receive the same challenge whether they use `GET` or `POST`. From there the client discovers the authorization server, registers itself, and a human approves the connection once.
 
 The MCP endpoint is a **separate audience** from the WordPress REST API, so a token minted for `/wp-json/` cannot call MCP and vice versa. Because of that separation the endpoint requires an RFC 8707 `resource` parameter, which the MCP authorization spec already obliges clients to send.
 
@@ -299,7 +299,7 @@ Agent Pilot registers two scopes with OAuth Pilot because it can enforce them at
 | `meta.annotations.readonly` is `true` | `wp:read` |
 | Anything else, including unannotated | `wp:write` |
 
-Defaulting to `wp:write` is the safe direction: an ability that does not describe itself is not assumed harmless. `tools/list` is filtered by the caller's granted scopes, so a read-only client never even sees the write tools. None of this widens what the represented user may do — the ability's own `permission_callback` still runs, and a call can be refused even when the tool is listed.
+Defaulting to `wp:write` is the safe direction: an ability that does not describe itself is not assumed harmless. `tools/list` is filtered by the caller's granted scopes, so a read-only client never even sees the write tools. When that client later invokes a write tool, Agent Pilot responds with an `insufficient_scope` challenge naming `wp:write` so clients that support OAuth step-up authorization can ask the user for the additional permission. None of this widens what the represented user may do — the ability's own `permission_callback` still runs, and a call can be refused even when the tool is listed.
 
 ### Protocol support
 

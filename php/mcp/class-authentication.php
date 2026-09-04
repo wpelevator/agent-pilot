@@ -169,16 +169,18 @@ class Authentication {
 	 * itself, and runs the consent flow without any of it being configured.
 	 *
 	 * @param string[] $required_scopes
+	 * @param string|null $error_code OAuth bearer error code, when applicable.
+	 * @param string $description Human-readable error description.
 	 */
-	public function get_challenge( array $required_scopes = [] ): string {
+	public function get_challenge( array $required_scopes = [], ?string $error_code = null, string $description = '' ): string {
 		if ( ! $this->is_oauth_available() ) {
 			return 'Bearer';
 		}
 
 		return \WPElevator\OAuth_Pilot\plugin()->get_validator()->get_challenge(
 			$this->get_resource_uri(),
-			null,
-			'',
+			$error_code,
+			$description,
 			$required_scopes
 		);
 	}

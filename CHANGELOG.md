@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.6.0 (2026-09-04)
+
+- fix: advertise the least-privilege `wp:read` scope in the initial MCP OAuth challenge, authenticate every HTTP method before transport or JSON-RPC dispatch, and identify write-scope step-up challenges with `insufficient_scope`, so clients can discover and expand the correct protected-resource grant.
+
 ## 0.5.0 (2026-09-04)
 
 - feat: add an MCP server that publishes the site's WordPress Abilities as MCP tools over Streamable HTTP at `/wp-json/agent-pilot/v1/mcp`, opt-in from the settings screen.
