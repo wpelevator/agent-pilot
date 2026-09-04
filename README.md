@@ -4,7 +4,7 @@ Agent Pilot lets WordPress authors create [Agent Skills](https://agentskills.io/
 
 ## Requirements
 
-- WordPress 6.6 or newer.
+- WordPress 6.6 or newer, or 6.9 or newer for the MCP server, which needs the Abilities API.
 - PHP 7.4 or newer.
 - PHP `zip` extension for archive generation.
 - Update Pilot is used for automatic plugin updates. Agent Pilot shows an admin notice when Update Pilot is unavailable.
@@ -185,6 +185,149 @@ The editor sidebar includes an Agent Plugin panel linking to every routed artifa
 
 With plain permalinks, use `?agent-plugin={name}&agent_pilot_plugin_format=plugin.json` (or `mcp.json` / `plugin.zip`). Draft previews require permission to read every referenced post and are never publicly cacheable. The ZIP is a distribution convenience: the specification defines the extracted directory layout (`plugin.json`, `skills/{name}/…`, and optional `mcp.json`), not an installation or distribution protocol.
 
+## MCP Server
+
+Agent Pilot can also serve this site's [WordPress Abilities](https://developer.wordpress.org/apis/abilities-api/) as [MCP](https://modelcontextprotocol.io/) tools, so that an agent client can call site functionality directly instead of only reading published instructions. This is separate from the MCP server *definitions* an Agent Plugin carries: those point a client at some other server, while this one is served by WordPress itself.
+
+The server is opt-in. Enable it under **Settings → Agent Pilot**, where the endpoint URL is also shown:
+
+```text
+https://example.com/wp-json/agent-pilot/v1/mcp
+```
+
+Requires WordPress 6.9 or newer for the Abilities API. Agent Pilot shows a notice on the settings screen when the API is unavailable.
+
+### Exposing abilities
+
+An ability opts in through its registration meta, using the same flag the official WordPress MCP Adapter reads, so an ability written for either server works with both:
+
+```php
+add_action( 'wp_abilities_api_init', function (): void {
+	wp_register_ability( 'my-plugin/count-posts', [
+		'label' => __( 'Count Posts', 'my-plugin' ),
+		'description' => __( 'Counts the published posts of a given post type.', 'my-plugin' ),
+		'category' => 'site',
+		'input_schema' => [
+			'type' => 'object',
+			'properties' => [
+				'post_type' => [ 'type' => 'string', 'default' => 'post' ],
+			],
+		],
+		'output_schema' => [
+			'type' => 'object',
+			'properties' => [
+				'published' => [ 'type' => 'integer' ],
+			],
+		],
+		'execute_callback' => fn( $input ) => [ 'published' => (int) wp_count_posts( $input['post_type'] ?? 'post' )->publish ],
+		'permission_callback' => fn(): bool => current_user_can( 'read' ),
+		'meta' => [
+			'mcp' => [ 'public' => true ],
+			'annotations' => [ 'readonly' => true, 'idempotent' => true ],
+		],
+	] );
+} );
+```
+
+Exposure resolves from most specific to least specific, matching how core derives `show_in_rest` from `public` and how the official MCP Adapter resolves the same flag:
+
+| Metadata | Exposed |
+| --- | --- |
+| `meta.mcp.public` is `true` | Yes |
+| `meta.mcp.public` is `false` | No, even when `meta.public` is `true` |
+| `meta.mcp.public` absent or `null` | Inherits `meta.public` |
+| Neither is set | No |
+| `meta.mcp` is not an array | No — malformed metadata fails closed |
+
+So an ability already published with `'meta' => [ 'public' => true ]` is served over MCP without further changes, and `'meta' => [ 'mcp' => [ 'public' => false ] ]` keeps a REST-published ability off MCP.
+
+One consequence worth knowing before enabling the server: WordPress ships `core/get-site-info`, `core/get-user-info` and `core/get-environment-info` with `meta.public` set, so they are exposed by default. All three are read-only, need only the `wp:read` scope, and still run their own capability checks. Opt any of them out with:
+
+```php
+add_filter( 'wp_register_ability_args', function ( array $args, string $name ): array {
+	if ( 'core/get-environment-info' === $name ) {
+		$args['meta']['mcp']['public'] = false;
+	}
+
+	return $args;
+}, 10, 2 );
+```
+
+To expose abilities you do not control, such as the core ones, filter the query instead of editing their registration:
+
+```php
+add_filter( 'agent_pilot__mcp_abilities', fn(): array => [ 'namespace' => 'core' ] );
+```
+
+Replacing the query replaces the per-ability opt-in rule along with it, which is the point: the abilities being exposed this way are precisely the ones that never opted in. Keep the default rule while adding to it by including the callback in the returned arguments.
+
+### How abilities map onto tools
+
+| Ability | MCP tool |
+| --- | --- |
+| Name `core/read-settings` | Name `core.read-settings` — slashes are not legal in tool names, and a dot can never appear in an ability name, so the mapping is reversible |
+| `label` | `title` |
+| `description` | `description` |
+| `input_schema` | `inputSchema`, wrapped in an object under a `value` property when the ability declares a non-object schema, because MCP requires an object |
+| `output_schema` | `outputSchema`, advertised only when it is an object schema |
+| `meta.annotations.readonly` / `destructive` / `idempotent` | `readOnlyHint` / `destructiveHint` / `idempotentHint`, and only the ones actually declared |
+
+A result is returned as a JSON text block, plus `structuredContent` when the ability advertises an object output schema. A failing ability comes back as a tool result with `isError` set rather than a protocol error, so the model can correct itself and retry.
+
+### Authentication
+
+Every request must be authenticated. The server accepts, in order:
+
+1. An OAuth 2.1 bearer token, when [OAuth Pilot](https://wpelevator.com/plugins/oauth-pilot) is active.
+2. Whatever WordPress already authenticated — a signed-in user or an Application Password.
+
+Nothing is configured on either side. Agent Pilot registers the MCP endpoint as its own OAuth protected resource through OAuth Pilot's `oauth_pilot__register_resources` action, and an unauthenticated request is answered with the RFC 9728 pointer that lets a client bootstrap from nothing but the site URL:
+
+```text
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Bearer resource_metadata="https://example.com/.well-known/oauth-protected-resource/wp-json/agent-pilot/v1/mcp"
+```
+
+From there the client discovers the authorization server, registers itself, and a human approves the connection once.
+
+The MCP endpoint is a **separate audience** from the WordPress REST API, so a token minted for `/wp-json/` cannot call MCP and vice versa. Because of that separation the endpoint requires an RFC 8707 `resource` parameter, which the MCP authorization spec already obliges clients to send.
+
+Agent Pilot registers two scopes with OAuth Pilot because it can enforce them at the ability boundary, and an ability's annotation of itself decides which one it needs:
+
+| Ability | Required scope |
+| --- | --- |
+| `meta.annotations.readonly` is `true` | `wp:read` |
+| Anything else, including unannotated | `wp:write` |
+
+Defaulting to `wp:write` is the safe direction: an ability that does not describe itself is not assumed harmless. `tools/list` is filtered by the caller's granted scopes, so a read-only client never even sees the write tools. None of this widens what the represented user may do — the ability's own `permission_callback` still runs, and a call can be refused even when the tool is listed.
+
+### Protocol support
+
+The server is dual-era, answering both the current revision and the handshake-based ones that shipped clients still use:
+
+| Revision | Notes |
+| --- | --- |
+| `2026-07-28` | Current. No handshake; per-request `_meta` protocol version, `server/discover`, `resultType` on results |
+| `2025-11-25`, `2025-06-18`, `2025-03-26` | Legacy `initialize` handshake with an `Mcp-Session-Id` |
+
+Implemented methods: `initialize`, `notifications/initialized`, `server/discover`, `ping`, `tools/list`, `tools/call`. `DELETE` terminates a session.
+
+Every response is `application/json`. The transport permits either that or an SSE stream, and since this server never sends a message the client did not ask for, it does not open one — a `GET` is answered with `405`, as the specification requires of a server that offers no stream. Resources, prompts, streaming and `notifications/tools/list_changed` are not implemented.
+
+Requests without an `Origin` header are accepted so desktop and server-side MCP clients can connect. When a browser sends the header, its origin must match the site's own address unless an integration extends the allowlist with `agent_pilot__mcp_allowed_origins`.
+
+### Filters
+
+| Filter | Purpose |
+| --- | --- |
+| `agent_pilot__mcp_enabled` | Override whether the endpoint accepts requests |
+| `agent_pilot__mcp_abilities` | Change the `wp_get_abilities()` query deciding what is exposed, opt-in rule included |
+| `agent_pilot__mcp_tool` | Adjust one generated tool definition |
+| `agent_pilot__mcp_tool_scopes` | Override the scopes one ability requires |
+| `agent_pilot__mcp_server_info` | Override the advertised server name and version |
+| `agent_pilot__mcp_instructions` | Override the guidance sent to clients |
+| `agent_pilot__mcp_allowed_origins` | Add browser origins allowed to call the MCP endpoint |
+
 ## TODO
 
 - Making the skills available as ChatGPT and Claude plugins.
@@ -199,3 +342,7 @@ With plain permalinks, use `?agent-plugin={name}&agent_pilot_plugin_format=plugi
 - [`skills` CLI package](https://www.npmjs.com/package/skills)
 - [`vercel-labs/skills` source repository](https://github.com/vercel-labs/skills)
 - [RFC 8288: Web Linking](https://www.rfc-editor.org/rfc/rfc8288)
+- [WordPress Abilities API](https://developer.wordpress.org/apis/abilities-api/)
+- [Model Context Protocol specification](https://modelcontextprotocol.io/specification/2026-07-28/)
+- [MCP Streamable HTTP transport](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http)
+- [RFC 9728: OAuth 2.0 Protected Resource Metadata](https://www.rfc-editor.org/rfc/rfc9728)

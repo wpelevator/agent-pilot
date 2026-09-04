@@ -20,6 +20,9 @@ class Plugin {
 	private Agent_Plugins $agent_plugins;
 	private Agent_Plugin_Discovery $plugin_discovery;
 
+	private MCP\Settings $mcp_settings;
+	private MCP\Server $mcp_server;
+
 	public function __construct( string $plugin_file ) {
 		$this->plugin_file = $plugin_file;
 
@@ -28,6 +31,15 @@ class Plugin {
 		$this->discovery = new Discovery( $this->skills, $response_emitter );
 		$this->agent_plugins = new Agent_Plugins( $this->skills );
 		$this->plugin_discovery = new Agent_Plugin_Discovery( $this->agent_plugins, $response_emitter );
+
+		$this->mcp_settings = new MCP\Settings();
+		$this->mcp_server = new MCP\Server(
+			new MCP\Tools(),
+			new MCP\Authentication(),
+			new MCP\Sessions(),
+			$this->mcp_settings,
+			$this->get_version()
+		);
 	}
 
 	public function init() {
@@ -40,10 +52,25 @@ class Plugin {
 
 		$this->discovery->init();
 		$this->plugin_discovery->init();
+		$this->mcp_server->init();
 	}
 
 	public function get_basename(): string {
 		return plugin_basename( $this->plugin_file );
+	}
+
+	public function get_version(): string {
+		$data = get_file_data( $this->plugin_file, [ 'version' => 'Version' ] );
+
+		return (string) ( $data['version'] ?? '' );
+	}
+
+	public function get_mcp_server(): MCP\Server {
+		return $this->mcp_server;
+	}
+
+	public function get_mcp_settings(): MCP\Settings {
+		return $this->mcp_settings;
 	}
 
 	public function get_skills(): Skills {
@@ -95,7 +122,54 @@ class Plugin {
 			<h2><?php esc_html_e( 'Agent Plugins', 'wpelevator-agent-pilot' ); ?></h2>
 			<p><?php esc_html_e( 'Create portable Agent Plugin packages, then download and extract the generated ZIP with a compatible installer.', 'wpelevator-agent-pilot' ); ?></p>
 			<p><a href="<?php echo esc_url( $this->get_plugins_admin_url() ); ?>"><?php esc_html_e( 'Manage Agent Plugins', 'wpelevator-agent-pilot' ); ?></a></p>
+			<?php $this->render_mcp_settings(); ?>
 		</div>
+		<?php
+	}
+
+	private function render_mcp_settings(): void {
+		$enabled_option = $this->mcp_settings->get_option_name( 'mcp_enabled' );
+		$authentication = new MCP\Authentication();
+		$tools = new MCP\Tools();
+		?>
+		<h2><?php esc_html_e( 'MCP Server', 'wpelevator-agent-pilot' ); ?></h2>
+		<p><?php esc_html_e( 'Publish the available WordPress Abilities as MCP tools so that agent clients can call them directly.', 'wpelevator-agent-pilot' ); ?></p>
+
+		<?php if ( ! $tools->is_available() ) : ?>
+			<div class="notice notice-warning inline">
+				<p><?php esc_html_e( 'This site does not have the WordPress Abilities API, which requires WordPress 6.9 or newer. The MCP server has nothing to expose until it is available.', 'wpelevator-agent-pilot' ); ?></p>
+			</div>
+		<?php endif; ?>
+
+		<?php if ( ! $authentication->is_oauth_available() ) : ?>
+			<div class="notice notice-info inline">
+				<p><?php esc_html_e( 'OAuth Pilot is not active. The MCP server currently accepts only signed-in users and Application Passwords. Activate OAuth Pilot to let agent clients authenticate themselves through OAuth 2.1.', 'wpelevator-agent-pilot' ); ?></p>
+			</div>
+		<?php endif; ?>
+
+		<form action="options.php" method="post">
+			<?php settings_fields( MCP\Settings::GROUP ); ?>
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><?php esc_html_e( 'MCP Server', 'wpelevator-agent-pilot' ); ?></th>
+					<td>
+						<label>
+							<input type="checkbox" name="<?php echo esc_attr( $enabled_option ); ?>" value="1" <?php checked( $this->mcp_settings->is_mcp_enabled() ); ?> />
+							<?php esc_html_e( 'Enable MCP server', 'wpelevator-agent-pilot' ); ?>
+						</label>
+						<p class="description"><?php esc_html_e( 'Abilities are exposed only when they opt in with the mcp.public meta flag, and every call still runs the ability\'s own permission check.', 'wpelevator-agent-pilot' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'MCP Server Address', 'wpelevator-agent-pilot' ); ?></th>
+					<td>
+						<code><?php echo esc_html( $this->mcp_server->get_endpoint_url() ); ?></code>
+						<p class="description"><?php esc_html_e( 'URL of the MCP server. Clients that support OAuth discover the rest on their own.', 'wpelevator-agent-pilot' ); ?></p>
+					</td>
+				</tr>
+			</table>
+			<?php submit_button(); ?>
+		</form>
 		<?php
 	}
 

@@ -2,7 +2,7 @@
 # This file is distributed under the same license as the Agent Pilot plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Agent Pilot 0.4.0\n"
+"Project-Id-Version: Agent Pilot 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/wpelevator/basement\n"
 "Last-Translator: support@wpelevator.com\n"
 "Language-Team: support@wpelevator.com\n"
@@ -16,9 +16,9 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #: agent-pilot.php:3
-#: php/class-plugin.php:59
-#: php/class-plugin.php:60
-#: php/class-plugin.php:91
+#: php/class-plugin.php:86
+#: php/class-plugin.php:87
+#: php/class-plugin.php:118
 msgid "Agent Pilot"
 msgstr ""
 
@@ -46,107 +46,140 @@ msgstr ""
 msgid "ZipArchive class is not available. Please ensure the PHP zip extension is installed and enabled."
 msgstr ""
 
-#: php/class-plugin.php:71
+#: php/class-plugin.php:98
 msgid "Skills"
 msgstr ""
 
-#: php/class-plugin.php:76
+#: php/class-plugin.php:103
 msgid "Plugins"
 msgstr ""
 
-#: php/class-plugin.php:82
+#: php/class-plugin.php:109
 msgid "Settings"
 msgstr ""
 
-#: php/class-plugin.php:92
-#: php/class-plugin.php:225
-#: php/class-plugin.php:234
-#: php/class-plugin.php:235
+#: php/class-plugin.php:119
+#: php/class-plugin.php:299
+#: php/class-plugin.php:308
+#: php/class-plugin.php:309
 msgid "Agent Skills"
 msgstr ""
 
-#: php/class-plugin.php:93
+#: php/class-plugin.php:120
 msgid "Install the published skills with:"
 msgstr ""
 
-#: php/class-plugin.php:94
+#: php/class-plugin.php:121
 msgid "Agent Skills discovery index:"
 msgstr ""
 
-#: php/class-plugin.php:95
-#: php/class-plugin.php:277
-#: php/class-plugin.php:281
+#: php/class-plugin.php:122
+#: php/class-plugin.php:351
+#: php/class-plugin.php:355
 msgid "Agent Plugins"
 msgstr ""
 
-#: php/class-plugin.php:96
+#: php/class-plugin.php:123
 msgid "Create portable Agent Plugin packages, then download and extract the generated ZIP with a compatible installer."
 msgstr ""
 
-#: php/class-plugin.php:97
+#: php/class-plugin.php:124
 msgid "Manage Agent Plugins"
 msgstr ""
 
-#: php/class-plugin.php:129
+#: php/class-plugin.php:135
+#: php/class-plugin.php:154
+msgid "MCP Server"
+msgstr ""
+
+#: php/class-plugin.php:136
+msgid "Publish the available WordPress Abilities as MCP tools so that agent clients can call them directly."
+msgstr ""
+
+#: php/class-plugin.php:140
+msgid "This site does not have the WordPress Abilities API, which requires WordPress 6.9 or newer. The MCP server has nothing to expose until it is available."
+msgstr ""
+
+#: php/class-plugin.php:146
+msgid "OAuth Pilot is not active. The MCP server currently accepts only signed-in users and Application Passwords. Activate OAuth Pilot to let agent clients authenticate themselves through OAuth 2.1."
+msgstr ""
+
+#: php/class-plugin.php:158
+msgid "Enable MCP server"
+msgstr ""
+
+#: php/class-plugin.php:160
+msgid "Abilities are exposed only when they opt in with the mcp.public meta flag, and every call still runs the ability's own permission check."
+msgstr ""
+
+#: php/class-plugin.php:164
+msgid "MCP Server Address"
+msgstr ""
+
+#: php/class-plugin.php:167
+msgid "URL of the MCP server. Clients that support OAuth discover the rest on their own."
+msgstr ""
+
+#: php/class-plugin.php:203
 msgid "Absolute permalink for the human-readable Agent Skill."
 msgstr ""
 
-#: php/class-plugin.php:188
+#: php/class-plugin.php:262
 msgid "Absolute URL for the generated SKILL.md file."
 msgstr ""
 
-#: php/class-plugin.php:210
+#: php/class-plugin.php:284
 msgid "Absolute URL for the generated skill ZIP archive."
 msgstr ""
 
-#: php/class-plugin.php:226
+#: php/class-plugin.php:300
 #: js/blocks/agent-skill/skill-files-panel.js:32
 msgid "Agent Skill"
 msgstr ""
 
-#: php/class-plugin.php:227
+#: php/class-plugin.php:301
 msgid "Add New Agent Skill"
 msgstr ""
 
-#: php/class-plugin.php:228
+#: php/class-plugin.php:302
 msgid "Edit Agent Skill"
 msgstr ""
 
-#: php/class-plugin.php:229
+#: php/class-plugin.php:303
 msgid "New Agent Skill"
 msgstr ""
 
-#: php/class-plugin.php:230
+#: php/class-plugin.php:304
 msgid "View Agent Skill"
 msgstr ""
 
-#: php/class-plugin.php:231
+#: php/class-plugin.php:305
 msgid "Search Agent Skills"
 msgstr ""
 
-#: php/class-plugin.php:232
+#: php/class-plugin.php:306
 msgid "No agent skills found."
 msgstr ""
 
-#: php/class-plugin.php:233
+#: php/class-plugin.php:307
 msgid "No agent skills found in Trash."
 msgstr ""
 
-#: php/class-plugin.php:267
+#: php/class-plugin.php:341
 msgid "Agent Skills compatibility requirements."
 msgstr ""
 
-#: php/class-plugin.php:278
+#: php/class-plugin.php:352
 #: js/blocks/agent-plugin/index.js:61
 #: js/blocks/agent-plugin/plugin-files-panel.js:64
 msgid "Agent Plugin"
 msgstr ""
 
-#: php/class-plugin.php:279
+#: php/class-plugin.php:353
 msgid "Add New Agent Plugin"
 msgstr ""
 
-#: php/class-plugin.php:280
+#: php/class-plugin.php:354
 msgid "Edit Agent Plugin"
 msgstr ""
 
@@ -164,6 +197,90 @@ msgstr ""
 
 #: php/class-zip-file.php:30
 msgid "Failed to create ZIP file."
+msgstr ""
+
+#: php/mcp/class-authentication.php:47
+msgid "Read MCP tools"
+msgstr ""
+
+#: php/mcp/class-authentication.php:48
+msgid "Call read-only tools available to your WordPress account."
+msgstr ""
+
+#: php/mcp/class-authentication.php:56
+msgid "Use MCP tools"
+msgstr ""
+
+#: php/mcp/class-authentication.php:57
+msgid "Call read and write tools available to your WordPress account."
+msgstr ""
+
+#: php/mcp/class-authentication.php:103
+msgid "Agent Pilot MCP server"
+msgstr ""
+
+#: php/mcp/class-authentication.php:155
+msgid "Authentication is required to use this MCP server."
+msgstr ""
+
+#: php/mcp/class-server.php:132
+msgid "The request body is not valid JSON."
+msgstr ""
+
+#: php/mcp/class-server.php:219
+msgid "This site does not have the WordPress Abilities API."
+msgstr ""
+
+#: php/mcp/class-server.php:259
+msgid "The request body is not a single JSON-RPC message."
+msgstr ""
+
+#: php/mcp/class-server.php:266
+msgid "The request is not a valid JSON-RPC 2.0 message."
+msgstr ""
+
+#: php/mcp/class-server.php:287
+msgid "Unsupported protocol version"
+msgstr ""
+
+#. translators: %s: the requested JSON-RPC method name.
+#: php/mcp/class-server.php:363
+#, php-format
+msgid "Method not found: %s"
+msgstr ""
+
+#: php/mcp/class-server.php:405
+msgid "A tool name is required."
+msgstr ""
+
+#: php/mcp/class-server.php:429
+msgid "WordPress"
+msgstr ""
+
+#. translators: %s: the site name.
+#: php/mcp/class-server.php:444
+#, php-format
+msgid "Tools on this server are WordPress Abilities published by %s. Each tool runs with the permissions of the authenticated WordPress user, so a call may be refused even when the tool is listed."
+msgstr ""
+
+#: php/mcp/class-settings.php:29
+msgid "Whether the MCP server endpoint accepts requests."
+msgstr ""
+
+#. translators: %s: the requested MCP tool name.
+#: php/mcp/class-tools.php:353
+#, php-format
+msgid "Unknown tool: %s"
+msgstr ""
+
+#: php/mcp/class-tools.php:365
+msgid "The access token does not carry the required scope."
+msgstr ""
+
+#. translators: %s: the requested MCP tool name.
+#: php/mcp/class-tools.php:388
+#, php-format
+msgid "You are not allowed to use the tool: %s"
 msgstr ""
 
 #: update-pilot.php:25

@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 0.5.0 (2026-09-04)
+
+- feat: add an MCP server that publishes the site's WordPress Abilities as MCP tools over Streamable HTTP at `/wp-json/agent-pilot/v1/mcp`, opt-in from the settings screen.
+- feat: authenticate MCP requests with OAuth Pilot when it is active, registering the endpoint as its own protected resource and answering an unauthenticated request with the RFC 9728 challenge that lets a client bootstrap from the site URL alone, and falling back to signed-in users and Application Passwords otherwise.
+- feat: register MCP-specific `wp:read` and `wp:write` scopes with OAuth Pilot, derive the scope an ability requires from its own `readonly` annotation, and narrow `tools/list` to the tools the caller's granted scopes allow.
+- feat: answer both the current `2026-07-28` MCP revision and the handshake based `2025-11-25`, `2025-06-18` and `2025-03-26` revisions from one endpoint.
+- feat: resolve MCP exposure from `meta.mcp.public` first and inherit `meta.public` when it is absent, matching how WordPress derives `show_in_rest` and how the official MCP Adapter resolves the same flag, so an ability written for either server is exposed identically by both. Malformed `meta.mcp` fails closed. As a result the three read-only core abilities, which ship with `meta.public` set, are exposed by default once the server is enabled.
+- docs: document exposing abilities over MCP, the ability to tool mapping, authentication, protocol support, and the available filters.
+
 ## 0.4.0 (2026-08-21)
 
 - feat: add an Agent Plugin post type and block-editor workflow for composing portable packages from published Agent Skills and optional MCP server definitions.
