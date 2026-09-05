@@ -169,7 +169,7 @@ The raw artifact rewrite only accepts a one-segment format suffix such as `skill
 
 Create an **Agent Plugin** post, enter its manifest details in the top-level block, then insert Plugin Skill and MCP Server child blocks. Skills are stored by post ID and are included live: changing a selected skill changes the next generated plugin archive without re-saving the plugin.
 
-The manifest supports `name` (the post slug), `description` (the excerpt), `author`, `license`, and `extensions`. A package needs at least one selected skill or valid MCP server. Published packages may only select published skills.
+The manifest supports `name` (the post slug), `description` (the excerpt), `author`, `license`, and `extensions`. A package needs at least one selected skill or valid MCP server. Published packages may only select published skills. A Plugin Skill block with nothing selected yet is ignored rather than treated as an error, so an empty block left open in the editor never breaks the generated artifacts; a block pointing at a post that is not an Agent Skill still fails validation.
 
 Each MCP server uses a name plus a raw JSON object edited with JSON syntax highlighting. Agent Pilot preserves the object without validating its transport or schema; authors are responsible for supplying configuration that their target MCP client accepts. MCP definitions are public package contents—never put credentials or tokens in them.
 

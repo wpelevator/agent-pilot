@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fixed an Agent Plugin Skill block with nothing selected yet invalidating the whole package. Inserting the block is the first half of choosing a skill, so an author who added one and saved before picking a post silently lost `plugin.json`, `mcp.json` and `plugin.zip`: the routes bail on an invalid plugin, and the editor sidebar kept showing the three links because the artifact URL fields are derived from the permalink rather than gated on validity. An unselected block is now skipped during validation the same way `get_skills()` already skipped it, so it contributes nothing and blocks nothing. A block that does reference a post which is not an Agent Skill still fails validation, and a plugin whose only child is an empty skill block still reports that it requires a skill or MCP server.
+
 ## 0.7.0 (2026-09-05)
 
 - Fixed an unauthenticated request from a disallowed browser origin being refused with a bare 403 before the OAuth challenge was sent, leaving a browser-based client no way to discover the authorization server. Origin validation now runs after authentication. Both checks still have to pass and neither dispatches anything, so DNS rebinding protection is unchanged.

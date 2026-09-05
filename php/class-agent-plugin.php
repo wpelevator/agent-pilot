@@ -117,7 +117,9 @@ class Agent_Plugin {
 			$errors[] = 'Plugin name must follow the Agent Plugins name pattern.';
 		}
 		foreach ( $this->get_blocks( [ self::BLOCK_NAME_SKILL ] ) as $block ) {
-			if ( ! Skill::from_post_id( (int) ( $block->attributes['skillId'] ?? 0 ) ) ) {
+			// A block with nothing selected yet contributes nothing rather than failing the package, matching get_skills().
+			$skill_id = (int) ( $block->attributes['skillId'] ?? 0 );
+			if ( $skill_id && ! Skill::from_post_id( $skill_id ) ) {
 				$errors[] = 'Each selected skill must reference an existing Agent Skill.';
 			}
 		}
