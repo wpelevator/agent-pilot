@@ -22,6 +22,7 @@ class Plugin {
 
 	private MCP\Settings $mcp_settings;
 	private MCP\Server $mcp_server;
+	private Rest_Ability $rest_ability;
 
 	public function __construct( string $plugin_file ) {
 		$this->plugin_file = $plugin_file;
@@ -33,8 +34,9 @@ class Plugin {
 		$this->plugin_discovery = new Agent_Plugin_Discovery( $this->agent_plugins, $response_emitter );
 
 		$this->mcp_settings = new MCP\Settings();
+		$this->rest_ability = new Rest_Ability();
 		$this->mcp_server = new MCP\Server(
-			new MCP\Tools(),
+			new MCP\Tools( $this->mcp_settings ),
 			new MCP\Authentication(),
 			new MCP\Sessions(),
 			$this->mcp_settings,
@@ -53,6 +55,7 @@ class Plugin {
 		$this->discovery->init();
 		$this->plugin_discovery->init();
 		$this->mcp_server->init();
+		$this->rest_ability->init();
 	}
 
 	public function get_basename(): string {
@@ -130,7 +133,7 @@ class Plugin {
 	private function render_mcp_settings(): void {
 		$enabled_option = $this->mcp_settings->get_option_name( 'mcp_enabled' );
 		$authentication = new MCP\Authentication();
-		$tools = new MCP\Tools();
+		$tools = new MCP\Tools( $this->mcp_settings );
 		?>
 		<h2><?php esc_html_e( 'MCP Server', 'wpelevator-agent-pilot' ); ?></h2>
 		<p><?php esc_html_e( 'Publish the available WordPress Abilities as MCP tools so that agent clients can call them directly.', 'wpelevator-agent-pilot' ); ?></p>
@@ -167,9 +170,42 @@ class Plugin {
 						<p class="description"><?php esc_html_e( 'URL of the MCP server. Clients that support OAuth discover the rest on their own.', 'wpelevator-agent-pilot' ); ?></p>
 					</td>
 				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'MCP Tools', 'wpelevator-agent-pilot' ); ?></th>
+					<td><?php $this->render_mcp_disabled_abilities( $tools ); ?></td>
+				</tr>
 			</table>
 			<?php submit_button(); ?>
 		</form>
+		<?php
+	}
+
+	private function render_mcp_disabled_abilities( MCP\Tools $tools ): void {
+		$option = $this->mcp_settings->get_option_name( 'mcp_disabled_abilities' );
+		$disabled = $this->mcp_settings->get_disabled_abilities();
+		$abilities = $tools->get_available_abilities();
+
+		// Keep saved exclusions visible when the providing plugin is inactive.
+		$names = array_unique( array_merge( array_keys( $abilities ), $disabled ) );
+		sort( $names );
+
+		?>
+		<p class="description"><?php esc_html_e( 'Select the registered WordPress abilities to disable in MCP clients and prevent them from calling as tools.', 'wpelevator-agent-pilot' ); ?></p>
+		<input type="hidden" name="<?php echo esc_attr( $option ); ?>[]" value="" />
+		<ul>
+			<?php foreach ( $names as $name ) : ?>
+			<li>
+				<label>
+					<input type="checkbox" name="<?php echo esc_attr( $option ); ?>[]" value="<?php echo esc_attr( $name ); ?>" <?php checked( in_array( $name, $disabled, true ) ); ?> />
+					<?php echo esc_html( isset( $abilities[ $name ] ) ? $abilities[ $name ]->get_label() : $name ); ?>
+					<code><?php echo esc_html( $name ); ?></code>
+				</label>
+			</li>
+			<?php endforeach; ?>
+			<?php if ( empty( $names ) ) : ?>
+				<li><?php esc_html_e( 'No abilities are available for MCP mapping.', 'wpelevator-agent-pilot' ); ?></li>
+			<?php endif; ?>
+		</ul>
 		<?php
 	}
 

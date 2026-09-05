@@ -11,9 +11,8 @@ use WP_Error;
  * An ability already carries everything a tool definition needs — a namespaced
  * name, a label, a description, JSON Schema for input and output, behavioral
  * annotations, and its own permission callback — so this class is mostly a
- * faithful translation rather than a layer of its own policy. The two places it
- * does decide something are the scope an ability requires, and the shape a
- * non-object input schema is wrapped in.
+ * faithful translation. It also applies saved mapping exclusions, determines
+ * the scope an ability requires, and wraps non-object input schemas for MCP.
  */
 class Tools {
 
@@ -41,6 +40,12 @@ class Tools {
 	 */
 	public const WRAPPED_INPUT_PROPERTY = 'value';
 
+	private Settings $settings;
+
+	public function __construct( ?Settings $settings = null ) {
+		$this->settings = $settings ?? new Settings();
+	}
+
 	/**
 	 * Whether this WordPress version has the Abilities API.
 	 */
@@ -58,6 +63,18 @@ class Tools {
 	 * @return WP_Ability[] Keyed by ability name.
 	 */
 	public function get_abilities(): array {
+		return array_diff_key(
+			$this->get_available_abilities(),
+			array_flip( $this->settings->get_disabled_abilities() )
+		);
+	}
+
+	/**
+	 * Abilities eligible for mapping, including ones disabled in settings.
+	 *
+	 * @return WP_Ability[] Keyed by ability name.
+	 */
+	public function get_available_abilities(): array {
 		if ( ! $this->is_available() ) {
 			return [];
 		}

@@ -29,6 +29,16 @@ class Settings {
 				'description' => __( 'Whether the MCP server endpoint accepts requests.', 'wpelevator-agent-pilot' ),
 				'sanitize_callback' => [ $this, 'sanitize_bool' ],
 			],
+			'mcp_disabled_abilities' => [
+				'type' => 'array',
+				'default' => [],
+				'description' => __( 'Abilities excluded from Agent Pilot MCP tools.', 'wpelevator-agent-pilot' ),
+				'sanitize_callback' => [ $this, 'sanitize_ability_names' ],
+				'schema' => [
+					'type' => 'array',
+					'items' => [ 'type' => 'string' ],
+				],
+			],
 		];
 	}
 
@@ -45,7 +55,7 @@ class Settings {
 					'sanitize_callback' => $definition['sanitize_callback'],
 					'show_in_rest' => [
 						'name' => $this->get_option_name( $key ),
-						'schema' => [
+						'schema' => $definition['schema'] ?? [
 							'type' => $definition['type'],
 							'description' => $definition['description'],
 						],
@@ -83,5 +93,24 @@ class Settings {
 
 	public function sanitize_bool( $value ): bool {
 		return (bool) $value;
+	}
+
+	public function get_disabled_abilities(): array {
+		return $this->sanitize_ability_names( $this->get( 'mcp_disabled_abilities' ) );
+	}
+
+	public function sanitize_ability_names( $value ): array {
+		$names = [];
+
+		foreach ( (array) $value as $name ) {
+			if ( is_string( $name ) && preg_match( '/^[a-z0-9-]+\/[a-z0-9-]+$/', $name ) ) {
+				$names[] = $name;
+			}
+		}
+
+		$names = array_values( array_unique( $names ) );
+		sort( $names );
+
+		return $names;
 	}
 }

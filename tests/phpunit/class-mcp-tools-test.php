@@ -3,11 +3,50 @@
 namespace WPElevator\Agent_Pilot_Tests;
 
 use WPElevator\Agent_Pilot\MCP\Authentication;
+use WPElevator\Agent_Pilot\MCP\Settings;
 use WPElevator\Agent_Pilot\MCP\Tools;
 
 require_once __DIR__ . '/class-mcp-test-case.php';
 
 class MCP_Tools_Test extends MCP_Test_Case {
+
+	public function test_disabled_ability_is_hidden_and_cannot_be_called() {
+		$executed = false;
+		$ability = $this->register_ability(
+			'agent-pilot-test/disabled',
+			[
+				'execute_callback' => function () use ( &$executed ): bool {
+					$executed = true;
+					return true;
+				},
+			]
+		);
+		$this->register_ability( 'agent-pilot-test/enabled' );
+		$option = ( new Settings() )->get_option_name( 'mcp_disabled_abilities' );
+		update_option( $option, [ $ability->get_name() ] );
+
+		$names = wp_list_pluck( $this->tools->get_tools( $this->get_unscoped_identity() ), 'name' );
+		$result = $this->tools->call( 'agent-pilot-test.disabled', [], $this->get_unscoped_identity() );
+
+		$this->assertNotContains( 'agent-pilot-test.disabled', $names, 'A disabled ability should disappear from tool discovery.' );
+		$this->assertContains( 'agent-pilot-test.enabled', $names, 'Other eligible abilities should remain discoverable.' );
+		$this->assertWPError( $result, 'A client that remembers the disabled tool name must not be able to call it.' );
+		$this->assertSame( 404, $result->get_error_data()['status'], 'Disabled tools should be treated as unavailable.' );
+		$this->assertFalse( $executed, 'The disabled ability callback must not execute.' );
+		$this->assertSame( $ability, wp_get_ability( $ability->get_name() ), 'Disabling MCP mapping must not unregister the WordPress ability.' );
+
+		update_option( $option, [] );
+		$this->assertSame( $ability, $this->tools->get_ability( 'agent-pilot-test.disabled' ), 'Clearing exclusions should restore normal tool mapping immediately.' );
+	}
+
+	public function test_disabled_abilities_stay_excluded_from_custom_queries() {
+		$this->register_ability( 'agent-pilot-test/disabled' );
+		update_option( ( new Settings() )->get_option_name( 'mcp_disabled_abilities' ), [ 'agent-pilot-test/disabled' ] );
+		add_filter( 'agent_pilot__mcp_abilities', fn(): array => [ 'namespace' => 'agent-pilot-test' ] );
+
+		$this->assertArrayNotHasKey( 'agent-pilot-test/disabled', $this->tools->get_abilities(), 'A custom query must not bypass saved exclusions.' );
+		$this->assertArrayHasKey( 'agent-pilot-test/disabled', $this->tools->get_available_abilities(), 'The settings screen must still be able to list a disabled ability for re-enabling.' );
+	}
 
 	public function test_tool_name_maps_reversibly_to_ability_name() {
 		$this->assertSame(

@@ -197,6 +197,32 @@ https://example.com/wp-json/agent-pilot/v1/mcp
 
 Requires WordPress 6.9 or newer for the Abilities API. Agent Pilot shows a notice on the settings screen when the API is unavailable.
 
+### Disabling MCP abilities
+
+Under **Settings → Agent Pilot → Abilities**, select the abilities to exclude and save. Selected abilities disappear from `tools/list` and cannot be called by name through `tools/call`, even by a client that previously discovered them. Clear a checkbox to restore the ability's normal mapping. No abilities are disabled by default.
+
+The list shows abilities eligible for MCP mapping and any saved exclusions whose provider is currently unavailable. Exclusions apply after the `agent_pilot__mcp_abilities` query filter, so customizing the query does not re-enable a disabled ability. This setting controls Agent Pilot's tool mapping; the abilities and REST endpoints remain available through their normal interfaces.
+
+The setting is stored per site as `agent_pilot__mcp_disabled_abilities`, an array of ability names such as `agent-pilot/rest-call`. Administrators can also update it through `/wp/v2/settings`; send an empty array to clear all exclusions.
+
+### Built-in REST ability
+
+Agent Pilot registers `agent-pilot/rest-call` on WordPress 6.9 or newer and exposes it as the `agent-pilot.rest-call` MCP tool. Enable the MCP server to let authenticated clients discover and call this site's REST endpoints without registering an ability for each route. The ability is also compatible with the official WordPress MCP Adapter.
+
+Pass `method`, `route` (an internal path without a query string), and optional `params`:
+
+```json
+{ "method": "GET", "route": "/wp/v2/posts", "params": { "per_page": 5 } }
+```
+
+Supported methods are `GET`, `HEAD`, `POST`, `PUT`, `PATCH`, `DELETE`, and `OPTIONS`. Parameters become query parameters for `GET`, `HEAD`, and `DELETE`, and body parameters for other methods. Calls run internally as the authenticated WordPress user. The ability's permission callback matches the REST endpoint, prepares its URL parameters, defaults, and sanitized input, then checks the endpoint's permissions before execution. Permission denials are ability errors; the endpoint callback is never executed by the permission check. Normal REST dispatch checks permissions again when executing an allowed call. Results contain `status`, `headers`, and `data`, including native REST validation and routing errors such as 400 and 404.
+
+`OPTIONS <route>` returns one route's methods and parameter schema and is the cheap way to learn an endpoint. `GET /` returns the whole index, which is around 230 KB on a stock site because it carries every route's `args`; narrowing it with `_fields` is what makes it usable, and `_fields=namespaces` answers in about 140 bytes. Route keys in the index are the registered patterns rather than templates, so `/wp/v2/posts/(?P<id>[\d]+)` is called as `/wp/v2/posts/123`.
+
+Because requests are dispatched internally rather than served over HTTP, they never pass through the `rest_post_dispatch` filters. Agent Pilot applies the two core behaviors that shape a response — `_fields` filtering and the `Allow` header — and resolves `_embed` from the request rather than from the query string, so those work as they do over HTTP. Anything else a site hooks to `rest_post_dispatch` for its HTTP responses does not run here.
+
+Because this single tool can modify and delete content, it requires `wp:write` for OAuth callers, including when making a `GET` request. It is annotated as potentially destructive and non-idempotent. The MCP server's existing ability query and registration filters also apply to this built-in ability.
+
 ### Exposing abilities
 
 An ability opts in through its registration meta, using the same flag the official WordPress MCP Adapter reads, so an ability written for either server works with both:
