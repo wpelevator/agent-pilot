@@ -7,7 +7,7 @@ use WPElevator\Agent_Pilot\Plugin;
 use WPElevator\Agent_Pilot\Request;
 use WPElevator\Agent_Pilot\Response;
 use WPElevator\Agent_Pilot\Response_Emitter;
-use WPElevator\Agent_Pilot\Skill;
+use WPElevator\Agent_Pilot\Skill_Post;
 use WPElevator\Agent_Pilot\Skills;
 
 class Discovery_Test extends \WP_UnitTestCase {
@@ -160,7 +160,7 @@ class Discovery_Test extends \WP_UnitTestCase {
 		$this->assertSame( [ 'alpha-skill', 'zebra-skill' ], wp_list_pluck( $index['skills'], 'name' ), 'Index entries should be sorted and exclude non-public skills.' );
 		$this->assertSame( [ 'archive', 'archive' ], wp_list_pluck( $index['skills'], 'type' ), 'Skills are published as downloadable archives.' );
 		$this->assertSame( [ 'Alpha description.', 'Zebra description.' ], wp_list_pluck( $index['skills'], 'description' ), 'Index entries should carry the skill description.' );
-		$this->assertSame( [ Discovery::SKILL_FILE ], $index['skills'][0]['files'], 'Index entries should keep the SKILL.md placeholder required by the v0.1 schema.' );
+		$this->assertSame( [ Skill_Post::FILE_SKILL_MD ], $index['skills'][0]['files'], 'Index entries should keep the SKILL.md placeholder required by the v0.1 schema.' );
 	}
 
 	public function test_index_entries_link_to_the_skill_archive_with_its_digest() {
@@ -189,7 +189,7 @@ class Discovery_Test extends \WP_UnitTestCase {
 		$this->assertSame( 1, $archive->count(), 'The archive should currently package only the generated SKILL.md.' );
 		$this->assertSame(
 			$skill->get_as_markdown(),
-			$archive->getFromName( Discovery::SKILL_FILE ),
+			$archive->getFromName( Skill_Post::FILE_SKILL_MD ),
 			'The archive should place the generated SKILL.md at the archive root.'
 		);
 
@@ -208,7 +208,7 @@ class Discovery_Test extends \WP_UnitTestCase {
 				'post_date' => '2024-01-05 10:00:00',
 			]
 		);
-		$skill = Skill::from_post_id( $post_id );
+		$skill = Skill_Post::from_post_id( $post_id );
 		$zip_file = $this->discovery->get_skill_zip_file( $skill );
 
 		if ( ! method_exists( new \ZipArchive(), 'setMtimeName' ) ) {
@@ -217,7 +217,7 @@ class Discovery_Test extends \WP_UnitTestCase {
 
 		$archive = new \ZipArchive();
 		$archive->open( $zip_file );
-		$entry = $archive->statName( Discovery::SKILL_FILE );
+		$entry = $archive->statName( Skill_Post::FILE_SKILL_MD );
 		$archive->close();
 
 		$this->assertEqualsWithDelta(
@@ -283,7 +283,7 @@ class Discovery_Test extends \WP_UnitTestCase {
 		];
 	}
 
-	private function create_skill( string $name, string $description, string $status ): Skill {
+	private function create_skill( string $name, string $description, string $status ): Skill_Post {
 		$post_id = self::factory()->post->create(
 			[
 				'post_type' => Plugin::POST_TYPE_AGENT_SKILL,
@@ -295,10 +295,10 @@ class Discovery_Test extends \WP_UnitTestCase {
 			]
 		);
 
-		return Skill::from_post_id( $post_id );
+		return Skill_Post::from_post_id( $post_id );
 	}
 
-	private function serve_skill_artifact( Skill $skill, string $format, ?bool $as_queried_object = false ): ?Response {
+	private function serve_skill_artifact( Skill_Post $skill, string $format, ?bool $as_queried_object = false ): ?Response {
 		global $wp_query;
 
 		$this->response = null;

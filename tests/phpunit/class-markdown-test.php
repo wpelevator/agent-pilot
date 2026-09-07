@@ -3,7 +3,7 @@
 namespace WPElevator\Agent_Pilot_Tests;
 
 use WPElevator\Agent_Pilot\Markdown;
-use WPElevator\Agent_Pilot\Skill;
+use WPElevator\Agent_Pilot\Skill_Post;
 
 class Markdown_Test extends \WP_UnitTestCase {
 
@@ -58,14 +58,14 @@ class Markdown_Test extends \WP_UnitTestCase {
 			implode(
 				'',
 				[
-					sprintf( '<!-- wp:%s --><div>', Skill::BLOCK_NAME ),
+					sprintf( '<!-- wp:%s --><div>', Skill_Post::BLOCK_NAME ),
 					'<!-- wp:paragraph --><p>Instructions.</p><!-- /wp:paragraph -->',
 					'<!-- wp:list --><ul class="wp-block-list">',
 					'<!-- wp:list-item --><li>First</li><!-- /wp:list-item -->',
 					'<!-- wp:list-item --><li>Second</li><!-- /wp:list-item -->',
 					'</ul><!-- /wp:list -->',
-					sprintf( '<!-- wp:%s {"fileName":"guide","format":"md"} --><div><p>Reference body.</p></div><!-- /wp:%1$s -->', Skill::REFERENCE_BLOCK_NAME ),
-					sprintf( '</div><!-- /wp:%s -->', Skill::BLOCK_NAME ),
+					sprintf( '<!-- wp:%s {"fileName":"guide","format":"md"} --><div><p>Reference body.</p></div><!-- /wp:%1$s -->', Skill_Post::REFERENCE_BLOCK_NAME ),
+					sprintf( '</div><!-- /wp:%s -->', Skill_Post::BLOCK_NAME ),
 				]
 			)
 		);
@@ -117,7 +117,7 @@ class Markdown_Test extends \WP_UnitTestCase {
 					[
 						'<!-- wp:paragraph --><p>Kept.</p><!-- /wp:paragraph -->',
 						"\n\n",
-						sprintf( '<!-- wp:%s {"fileName":"hello.sh"} --><pre><code>echo hello</code></pre><!-- /wp:%1$s -->', Skill::SCRIPT_BLOCK_NAME ),
+						sprintf( '<!-- wp:%s {"fileName":"hello.sh"} --><pre><code>echo hello</code></pre><!-- /wp:%1$s -->', Skill_Post::SCRIPT_BLOCK_NAME ),
 						'<!-- wp:table --><figure class="wp-block-table"><table><tr><td>Cell</td></tr></table></figure><!-- /wp:table -->',
 					]
 				)

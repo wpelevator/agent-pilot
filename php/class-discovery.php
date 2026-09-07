@@ -8,8 +8,6 @@ use WP_Post;
 class Discovery {
 	public const SKILL_FORMAT = 'agent_pilot_skill_format';
 
-	public const SKILL_FILE = 'SKILL.md';
-
 	public const SKILL_FORMAT_MD = 'skill.md';
 
 	public const SKILL_FORMAT_ZIP = 'skill.zip';
@@ -26,11 +24,14 @@ class Discovery {
 
 	private Cache_Transient $cache;
 
+	private Package_Archive $archive;
+
 	public function __construct( Skills $skills, Response_Emitter $response_emitter ) {
 		$this->skills = $skills;
 		$this->response_emitter = $response_emitter;
 
 		$this->cache = new Cache_Transient( 'agent-pilot' );
+		$this->archive = new Package_Archive();
 	}
 
 	public function init() {
@@ -101,7 +102,7 @@ class Discovery {
 						 * .well-known/agent-skills/{name}/SKILL.md, so this is just a placeholder
 						 * for now.
 						 */
-						'SKILL.md',
+						Skill_Post::FILE_SKILL_MD,
 					],
 				];
 			} catch ( RuntimeException $e ) {
@@ -127,7 +128,7 @@ class Discovery {
 			: $existing_link . ', ' . $link;
 	}
 
-	private function get_skill_format_url( Skill $skill, string $format ): string {
+	private function get_skill_format_url( Skill_Post $skill, string $format ): string {
 		$permalink = $skill->get_permalink();
 
 		if ( false !== strpos( $permalink, '?' ) ) { // TODO: replace with proper pretty permalink check.
@@ -144,32 +145,16 @@ class Discovery {
 		);
 	}
 
-	public function get_skill_md_url( Skill $skill ): string {
+	public function get_skill_md_url( Skill_Post $skill ): string {
 		return $this->get_skill_format_url( $skill, self::SKILL_FORMAT_MD );
 	}
 
-	public function get_skill_zip_url( Skill $skill ): string {
+	public function get_skill_zip_url( Skill_Post $skill ): string {
 		return $this->get_skill_format_url( $skill, self::SKILL_FORMAT_ZIP );
 	}
 
-	public function get_skill_zip_file( Skill $skill ): string {
-		if ( ! Zip_File::is_supported() ) {
-			throw new RuntimeException( __( 'ZipArchive class is not available. Please ensure the PHP zip extension is installed and enabled.', 'wpelevator-agent-pilot' ) );
-		}
-
-		$zip_cache_file = sprintf(
-			'%s/agent-skill-v3-%s.zip', // Bump the version number when the ZIP generation logic changes.
-			get_temp_dir(),
-			$skill->get_hash()
-		);
-
-		if ( is_readable( $zip_cache_file ) ) {
-			return $zip_cache_file;
-		}
-
-		$zip_file = new Zip_File( $zip_cache_file, $skill->get_files() );
-
-		return $zip_file->get_file( $skill->get_last_modified() );
+	public function get_skill_zip_file( Agent_Package $skill ): string {
+		return $this->archive->get_file( $skill );
 	}
 
 	public function action_serve_discovery() {
@@ -190,12 +175,12 @@ class Discovery {
 		$name = (string) get_query_var( Plugin::PERMALINK_PREFIX_AGENT_SKILL ); // TODO: this will be empty if the post type is not public.
 
 		if ( $queried_object instanceof WP_Post && Plugin::POST_TYPE_AGENT_SKILL === $queried_object->post_type ) {
-			$skill = new Skill( $queried_object );
+			$skill = new Skill_Post( $queried_object );
 		} elseif ( ! empty( $name ) ) {
 			$skill = $this->skills->get_public_skill( $name );
 		}
 
-		if ( isset( $skill ) && ( $skill->is_published() || current_user_can( 'read_post', $skill->get_id() ) ) ) {
+		if ( isset( $skill ) && $skill->can_read() ) {
 			$headers = [];
 
 			if ( ! $skill->is_published() ) {

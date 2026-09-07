@@ -12,7 +12,7 @@ namespace WPElevator\Agent_Pilot;
 use WP_Block_Type_Registry;
 
 $post_id = ! empty( $block->context['postId'] ) ? (int) $block->context['postId'] : get_the_ID();
-$skill = Skill::from_post_id( $post_id );
+$skill = Skill_Post::from_post_id( $post_id );
 
 if ( ! $skill ) {
 	return '';

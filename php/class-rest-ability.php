@@ -8,67 +8,50 @@ use WP_REST_Request;
 /** Dispatches internal REST requests as the current WordPress user. */
 class Rest_Ability {
 
-	public const NAME = 'agent-pilot/rest-call';
-	public const CATEGORY = 'agent-pilot';
-
-	public function init(): void {
-		add_action( 'wp_abilities_api_categories_init', [ $this, 'action_register_category' ] );
-		add_action( 'wp_abilities_api_init', [ $this, 'action_register_ability' ] );
+	public function get_args(): array {
+		return [
+			'label' => __( 'Call REST API', 'wpelevator-agent-pilot' ),
+			'description' => __( 'Execute a WordPress REST API endpoint internally. Call OPTIONS on a route for its methods and parameter schema; GET / lists every route on the site but is large. Use _fields on any call to limit the response. Route keys in the index are regular expressions, so /wp/v2/posts/(?P<id>[\d]+) is called as /wp/v2/posts/123. Pass parameters separately from the route.', 'wpelevator-agent-pilot' ),
+			'category' => Plugin::ABILITY_CATEGORY,
+			'input_schema' => $this->get_input_schema(),
+			'permission_callback' => [ $this, 'check_permission' ],
+			'execute_callback' => [ $this, 'execute' ],
+			'meta' => [
+				'mcp' => [
+					'public' => true,
+					'type' => 'tool',
+				],
+				'annotations' => [
+					'readonly' => false,
+					'destructive' => true,
+					'idempotent' => false,
+				],
+			],
+		];
 	}
 
-	public function action_register_category(): void {
-		wp_register_ability_category(
-			self::CATEGORY,
-			[
-				'label' => __( 'Agent Pilot', 'wpelevator-agent-pilot' ),
-				'description' => __( 'Interact with this WordPress site.', 'wpelevator-agent-pilot' ),
-			]
-		);
-	}
-
-	public function action_register_ability(): void {
-		wp_register_ability(
-			self::NAME,
-			[
-				'label' => __( 'Call REST API', 'wpelevator-agent-pilot' ),
-				'description' => __( 'Execute a WordPress REST API endpoint internally. Call OPTIONS on a route for its methods and parameter schema; GET / lists every route on the site but is large. Use _fields on any call to limit the response. Route keys in the index are regular expressions, so /wp/v2/posts/(?P<id>[\d]+) is called as /wp/v2/posts/123. Pass parameters separately from the route.', 'wpelevator-agent-pilot' ),
-				'category' => self::CATEGORY,
-				'input_schema' => [
+	private function get_input_schema(): array {
+		return [
+			'type' => 'object',
+			'properties' => [
+				'method' => [
+					'type' => 'string',
+					'enum' => [ 'GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS' ],
+				],
+				'route' => [
+					'type' => 'string',
+					'pattern' => '^/[^?#]*$',
+					'description' => __( 'REST route path, such as /wp/v2/posts, without a URL or query string.', 'wpelevator-agent-pilot' ),
+				],
+				'params' => [
 					'type' => 'object',
-					'properties' => [
-						'method' => [
-							'type' => 'string',
-							'enum' => [ 'GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS' ],
-						],
-						'route' => [
-							'type' => 'string',
-							'pattern' => '^/[^?#]*$',
-							'description' => __( 'REST route path, such as /wp/v2/posts, without a URL or query string.', 'wpelevator-agent-pilot' ),
-						],
-						'params' => [
-							'type' => 'object',
-							'additionalProperties' => true,
-							'description' => __( 'Query parameters for GET, HEAD and DELETE; body parameters for other methods.', 'wpelevator-agent-pilot' ),
-						],
-					],
-					'required' => [ 'method', 'route' ],
-					'additionalProperties' => false,
+					'additionalProperties' => true,
+					'description' => __( 'Query parameters for GET, HEAD and DELETE; body parameters for other methods.', 'wpelevator-agent-pilot' ),
 				],
-				'permission_callback' => [ $this, 'check_permission' ],
-				'execute_callback' => [ $this, 'execute' ],
-				'meta' => [
-					'mcp' => [
-						'public' => true,
-						'type' => 'tool',
-					],
-					'annotations' => [
-						'readonly' => false,
-						'destructive' => true,
-						'idempotent' => false,
-					],
-				],
-			]
-		);
+			],
+			'required' => [ 'method', 'route' ],
+			'additionalProperties' => false,
+		];
 	}
 
 	/**
@@ -81,8 +64,15 @@ class Rest_Ability {
 			return false;
 		}
 
-		// MCP checks permissions before core's execute() validates the input.
-		$valid = wp_get_ability( self::NAME )->validate_input( $input );
+		/*
+		 * MCP checks permissions before core's execute() validates the input, so
+		 * everything below would otherwise be reading whatever arrived. The
+		 * schema is applied straight from here rather than by looking this
+		 * ability up in the registry, which is what let it forget its own name.
+		 * A call that goes on to execute is validated again by core, filters
+		 * included.
+		 */
+		$valid = rest_validate_value_from_schema( $input, $this->get_input_schema(), 'input' );
 		if ( is_wp_error( $valid ) ) {
 			return $valid;
 		}

@@ -2,7 +2,7 @@
 
 namespace WPElevator\Agent_Pilot_Tests;
 
-use WPElevator\Agent_Pilot\Rest_Ability;
+use WPElevator\Agent_Pilot\Plugin;
 use WPElevator\Agent_Pilot\MCP\Authentication;
 
 require_once __DIR__ . '/class-mcp-test-case.php';
@@ -18,7 +18,7 @@ class Rest_Ability_Test extends MCP_Test_Case {
 	}
 
 	public function test_ability_is_registered_and_exposed_with_write_scope() {
-		$ability = wp_get_ability( Rest_Ability::NAME );
+		$ability = wp_get_ability( Plugin::ABILITY_REST_CALL );
 
 		$this->assertInstanceOf( \WP_Ability::class, $ability, 'Plugin initialization should register the REST ability.' );
 		$this->assertContains( 'agent-pilot.rest-call', wp_list_pluck( $this->tools->get_tools( $this->get_unscoped_identity() ), 'name' ), 'The built-in ability should be exposed as an MCP tool.' );
@@ -29,7 +29,7 @@ class Rest_Ability_Test extends MCP_Test_Case {
 		wp_set_current_user( 0 );
 
 		$this->assertWPError(
-			wp_get_ability( Rest_Ability::NAME )->execute(
+			wp_get_ability( Plugin::ABILITY_REST_CALL )->execute(
 				[
 					'method' => 'GET',
 					'route' => '/',
@@ -42,7 +42,7 @@ class Rest_Ability_Test extends MCP_Test_Case {
 	public function test_authenticated_user_can_discover_routes() {
 		wp_set_current_user( self::factory()->user->create( [ 'role' => 'subscriber' ] ) );
 
-		$result = wp_get_ability( Rest_Ability::NAME )->execute(
+		$result = wp_get_ability( Plugin::ABILITY_REST_CALL )->execute(
 			[
 				'method' => 'GET',
 				'route' => '/',
@@ -58,7 +58,7 @@ class Rest_Ability_Test extends MCP_Test_Case {
 		wp_set_current_user( self::factory()->user->create( [ 'role' => 'editor' ] ) );
 		self::factory()->post->create( [ 'post_title' => 'Hello' ] );
 
-		$result = wp_get_ability( Rest_Ability::NAME )->execute(
+		$result = wp_get_ability( Plugin::ABILITY_REST_CALL )->execute(
 			[
 				'method' => 'GET',
 				'route' => '/wp/v2/posts',
@@ -79,7 +79,7 @@ class Rest_Ability_Test extends MCP_Test_Case {
 		wp_set_current_user( self::factory()->user->create( [ 'role' => 'editor' ] ) );
 		self::factory()->post->create( [ 'post_title' => 'Hello' ] );
 
-		$result = wp_get_ability( Rest_Ability::NAME )->execute(
+		$result = wp_get_ability( Plugin::ABILITY_REST_CALL )->execute(
 			[
 				'method' => 'GET',
 				'route' => '/wp/v2/posts',
@@ -97,7 +97,7 @@ class Rest_Ability_Test extends MCP_Test_Case {
 	public function test_allow_header_reports_the_methods_a_caller_may_use() {
 		wp_set_current_user( self::factory()->user->create( [ 'role' => 'editor' ] ) );
 
-		$result = wp_get_ability( Rest_Ability::NAME )->execute(
+		$result = wp_get_ability( Plugin::ABILITY_REST_CALL )->execute(
 			[
 				'method' => 'GET',
 				'route' => '/wp/v2/posts',
@@ -111,7 +111,7 @@ class Rest_Ability_Test extends MCP_Test_Case {
 	public function test_allow_header_reflects_the_current_user_permissions() {
 		wp_set_current_user( self::factory()->user->create( [ 'role' => 'subscriber' ] ) );
 
-		$result = wp_get_ability( Rest_Ability::NAME )->execute(
+		$result = wp_get_ability( Plugin::ABILITY_REST_CALL )->execute(
 			[
 				'method' => 'GET',
 				'route' => '/wp/v2/posts',
@@ -128,7 +128,7 @@ class Rest_Ability_Test extends MCP_Test_Case {
 	public function test_native_permissions_prevent_post_creation() {
 		wp_set_current_user( self::factory()->user->create( [ 'role' => 'subscriber' ] ) );
 
-		$result = wp_get_ability( Rest_Ability::NAME )->check_permissions(
+		$result = wp_get_ability( Plugin::ABILITY_REST_CALL )->check_permissions(
 			[
 				'method' => 'POST',
 				'route' => '/wp/v2/posts',
@@ -181,7 +181,7 @@ class Rest_Ability_Test extends MCP_Test_Case {
 			]
 		);
 
-		$result = wp_get_ability( Rest_Ability::NAME )->check_permissions(
+		$result = wp_get_ability( Plugin::ABILITY_REST_CALL )->check_permissions(
 			[
 				'method' => 'HEAD',
 				'route' => '/agent-pilot-test/v1/permission/12',
@@ -214,7 +214,7 @@ class Rest_Ability_Test extends MCP_Test_Case {
 			]
 		);
 
-		$result = wp_get_ability( Rest_Ability::NAME )->check_permissions(
+		$result = wp_get_ability( Plugin::ABILITY_REST_CALL )->check_permissions(
 			[
 				'method' => 'POST',
 				'route' => '/agent-pilot-test/v1/permission',
@@ -237,7 +237,7 @@ class Rest_Ability_Test extends MCP_Test_Case {
 				]
 			);
 
-			$result = wp_get_ability( Rest_Ability::NAME )->check_permissions(
+			$result = wp_get_ability( Plugin::ABILITY_REST_CALL )->check_permissions(
 				[
 					'method' => 'GET',
 					'route' => '/agent-pilot-test/v1/permission/' . $callback,
@@ -250,7 +250,7 @@ class Rest_Ability_Test extends MCP_Test_Case {
 
 	public function test_body_query_and_url_parameters_reach_native_endpoints() {
 		wp_set_current_user( self::factory()->user->create( [ 'role' => 'editor' ] ) );
-		$ability = wp_get_ability( Rest_Ability::NAME );
+		$ability = wp_get_ability( Plugin::ABILITY_REST_CALL );
 		$created = $ability->execute(
 			[
 				'method' => 'POST',
@@ -285,7 +285,7 @@ class Rest_Ability_Test extends MCP_Test_Case {
 
 	public function test_rest_validation_and_missing_routes_preserve_errors() {
 		wp_set_current_user( self::factory()->user->create( [ 'role' => 'editor' ] ) );
-		$ability = wp_get_ability( Rest_Ability::NAME );
+		$ability = wp_get_ability( Plugin::ABILITY_REST_CALL );
 		$invalid = $ability->execute(
 			[
 				'method' => 'GET',
@@ -306,7 +306,7 @@ class Rest_Ability_Test extends MCP_Test_Case {
 
 	public function test_input_schema_rejects_urls_and_unsupported_methods() {
 		wp_set_current_user( self::factory()->user->create( [ 'role' => 'editor' ] ) );
-		$ability = wp_get_ability( Rest_Ability::NAME );
+		$ability = wp_get_ability( Plugin::ABILITY_REST_CALL );
 
 		$this->assertWPError( $ability->check_permissions( [] ), 'Direct permission checks should validate missing input before matching REST routes.' );
 

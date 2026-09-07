@@ -2,7 +2,6 @@
 
 namespace WPElevator\Agent_Pilot;
 
-use RuntimeException;
 use WP_Post;
 
 class Agent_Plugin_Discovery {
@@ -12,9 +11,12 @@ class Agent_Plugin_Discovery {
 	private Agent_Plugins $plugins;
 	private Response_Emitter $emitter;
 
+	private Package_Archive $archive;
+
 	public function __construct( Agent_Plugins $plugins, Response_Emitter $emitter ) {
 		$this->plugins = $plugins;
 		$this->emitter = $emitter;
+		$this->archive = new Package_Archive();
 	}
 
 	public function init(): void {
@@ -37,7 +39,7 @@ class Agent_Plugin_Discovery {
 		return $query_vars;
 	}
 
-	private function get_file_url( Agent_Plugin $plugin, string $file ): string {
+	private function get_file_url( Agent_Plugin_Post $plugin, string $file ): string {
 		$permalink = $plugin->get_permalink();
 
 		if ( false !== strpos( $permalink, '?' ) ) {
@@ -47,31 +49,20 @@ class Agent_Plugin_Discovery {
 		return rtrim( $permalink, '/' ) . '/' . $file;
 	}
 
-	public function get_plugin_json_url( Agent_Plugin $plugin ): string {
+	public function get_plugin_json_url( Agent_Plugin_Post $plugin ): string {
 		return $this->get_file_url( $plugin, 'plugin.json' );
 	}
 
-	public function get_mcp_json_url( Agent_Plugin $plugin ): ?string {
+	public function get_mcp_json_url( Agent_Plugin_Post $plugin ): ?string {
 		return $plugin->get_mcp_json() ? $this->get_file_url( $plugin, 'mcp.json' ) : null;
 	}
 
-	public function get_plugin_zip_url( Agent_Plugin $plugin ): string {
+	public function get_plugin_zip_url( Agent_Plugin_Post $plugin ): string {
 		return $this->get_file_url( $plugin, 'plugin.zip' );
 	}
 
-	public function get_plugin_zip_file( Agent_Plugin $plugin ): string {
-		if ( ! Zip_File::is_supported() ) {
-			throw new RuntimeException( __( 'ZipArchive class is not available.', 'wpelevator-agent-pilot' ) );
-		}
-
-		$file = get_temp_dir() . '/agent-plugin-v1-' . $plugin->get_hash() . '.zip';
-		if ( is_readable( $file ) ) {
-			return $file;
-		}
-
-		$zip = new Zip_File( $file, $plugin->get_files() );
-
-		return $zip->get_file( $plugin->get_last_modified() );
+	public function get_plugin_zip_file( Agent_Package $plugin ): string {
+		return $this->archive->get_file( $plugin );
 	}
 
 	public function action_serve_file(): void {
@@ -83,10 +74,10 @@ class Agent_Plugin_Discovery {
 		$object = get_queried_object();
 		$name = (string) get_query_var( Plugin::PERMALINK_PREFIX_AGENT_PLUGIN );
 		$plugin = $object instanceof WP_Post && Plugin::POST_TYPE_AGENT_PLUGIN === $object->post_type
-			? new Agent_Plugin( $object, plugin()->get_skills() )
+			? new Agent_Plugin_Post( $object )
 			: $this->plugins->get_public_plugin( $name );
 
-		if ( ! $plugin || ( ! $plugin->is_published() && ! current_user_can( 'read_post', $plugin->get_id() ) ) || ! $plugin->is_valid( $plugin->is_published() ) ) {
+		if ( ! $plugin || ! $plugin->can_read() || ! $plugin->is_valid( $plugin->is_published() ) ) {
 			return;
 		}
 

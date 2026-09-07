@@ -2,7 +2,7 @@
 
 namespace WPElevator\Agent_Pilot_Tests;
 
-use WPElevator\Agent_Pilot\Skill;
+use WPElevator\Agent_Pilot\Skill_Post;
 use WPElevator\Agent_Pilot\Skills;
 use WPElevator\Agent_Pilot\Plugin;
 
@@ -20,7 +20,7 @@ class Skills_Test extends \WP_UnitTestCase {
 		$this->create_skill( 'alpha-skill', 'publish' );
 		$this->create_skill( 'private-skill', 'private' );
 		$public_skill_names = array_map(
-			function ( Skill $skill ) {
+			function ( Skill_Post $skill ) {
 				return $skill->get_name();
 			},
 			$skills->get_public_skills()
@@ -37,7 +37,7 @@ class Skills_Test extends \WP_UnitTestCase {
 
 		wp_set_current_user( 0 );
 
-		$this->assertInstanceOf( Skill::class, $skills->get_public_skill( 'public-skill' ), 'Public lookups should resolve published skills.' );
+		$this->assertInstanceOf( Skill_Post::class, $skills->get_public_skill( 'public-skill' ), 'Public lookups should resolve published skills.' );
 		$this->assertNull( $skills->get_public_skill( 'private-skill' ), 'Public lookups should hide private skills.' );
 		$this->assertNull( $skills->get_public_skill( 'draft-skill' ), 'Public lookups should hide draft skills.' );
 		$this->assertNull( $skills->get_public_skill( 'missing-skill' ), 'Public lookups should return null for unknown skills.' );

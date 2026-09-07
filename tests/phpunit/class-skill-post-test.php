@@ -3,9 +3,9 @@
 namespace WPElevator\Agent_Pilot_Tests;
 
 use WPElevator\Agent_Pilot\Plugin;
-use WPElevator\Agent_Pilot\Skill;
+use WPElevator\Agent_Pilot\Skill_Post;
 
-class Skill_Test extends \WP_UnitTestCase {
+class Skill_Post_Test extends \WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
@@ -21,7 +21,7 @@ class Skill_Test extends \WP_UnitTestCase {
 				'post_status' => 'publish',
 			]
 		);
-		$skill = new Skill( get_post( $post_id ) );
+		$skill = new Skill_Post( get_post( $post_id ) );
 
 		$this->assertTrue( $skill->is_published(), 'Published post status should enable public distribution.' );
 		$this->assertSame( get_permalink( $post_id ), $skill->get_permalink(), 'A published skill should return its regular WordPress permalink.' );
@@ -35,7 +35,7 @@ class Skill_Test extends \WP_UnitTestCase {
 				'post_status' => 'draft',
 			]
 		);
-		$skill = new Skill( get_post( $post_id ) );
+		$skill = new Skill_Post( get_post( $post_id ) );
 
 		$this->assertFalse( $skill->is_published(), 'Draft skills should not be treated as publicly distributable.' );
 		$this->assertSame( get_preview_post_link( get_post( $post_id ) ), $skill->get_permalink(), 'Unpublished skills should be reachable through their preview link.' );
@@ -63,9 +63,9 @@ class Skill_Test extends \WP_UnitTestCase {
 			]
 		);
 
-		$skill = Skill::from_post_id( $post_id );
+		$skill = Skill_Post::from_post_id( $post_id );
 
-		$this->assertInstanceOf( Skill::class, $skill, 'Agent skill posts should map to Skill domain objects.' );
+		$this->assertInstanceOf( Skill_Post::class, $skill, 'Agent skill posts should map to Skill domain objects.' );
 		$this->assertSame( $post_id, $skill->get_id(), 'Skill identity should track the underlying post ID.' );
 		$this->assertSame( 'code-review', $skill->get_name(), 'Skill identity should come from the post slug.' );
 		$this->assertSame( 'Code Review', $skill->get_title(), 'Skill titles should come from the post title.' );
@@ -86,11 +86,11 @@ class Skill_Test extends \WP_UnitTestCase {
 				'post_content' => '<!-- wp:paragraph --><p>Use Docker.</p><!-- /wp:paragraph -->',
 			]
 		);
-		update_post_meta( $post_id, Skill::META_KEY_COMPATIBILITY, 'Requires Docker and WP-CLI.' );
+		update_post_meta( $post_id, Skill_Post::META_KEY_COMPATIBILITY, 'Requires Docker and WP-CLI.' );
 
-		$skill = Skill::from_post_id( $post_id );
+		$skill = Skill_Post::from_post_id( $post_id );
 
-		$this->assertSame( 'agent_pilot__compatibility', Skill::META_KEY_COMPATIBILITY, 'The compatibility meta key should use the plugin double-underscore prefix signature.' );
+		$this->assertSame( 'agent_pilot__compatibility', Skill_Post::META_KEY_COMPATIBILITY, 'The compatibility meta key should use the plugin double-underscore prefix signature.' );
 		$this->assertSame( 'Requires Docker and WP-CLI.', $skill->get_compatibility(), 'Skill compatibility should come from the prefixed post meta value.' );
 		$this->assertSame(
 			[
@@ -107,7 +107,7 @@ class Skill_Test extends \WP_UnitTestCase {
 	public function test_rejects_other_post_types() {
 		$post_id = self::factory()->post->create();
 
-		$this->assertNull( Skill::from_post_id( $post_id ), 'Only agent_skill posts should map to Skill domain objects.' );
+		$this->assertNull( Skill_Post::from_post_id( $post_id ), 'Only agent_skill posts should map to Skill domain objects.' );
 	}
 
 	public function test_last_modified_time_tracks_the_post_modification_time() {
@@ -118,7 +118,7 @@ class Skill_Test extends \WP_UnitTestCase {
 				'post_date' => '2024-01-05 10:00:00',
 			]
 		);
-		$skill = Skill::from_post_id( $post_id );
+		$skill = Skill_Post::from_post_id( $post_id );
 
 		$this->assertSame(
 			(int) get_post_modified_time( 'U', true, $skill->get_post() ),
@@ -148,7 +148,7 @@ class Skill_Test extends \WP_UnitTestCase {
 				),
 			]
 		);
-		$skill = Skill::from_post_id( $post_id );
+		$skill = Skill_Post::from_post_id( $post_id );
 
 		$this->assertSame(
 			[ 'references/guide.md' ],
@@ -181,7 +181,7 @@ class Skill_Test extends \WP_UnitTestCase {
 				),
 			]
 		);
-		$skill = Skill::from_post_id( $post_id );
+		$skill = Skill_Post::from_post_id( $post_id );
 
 		$this->assertNull( array_values( $skill->get_scripts() )[0]->get_filename(), 'A script filename that normalizes to nothing should not resolve to an archive path.' );
 		$this->assertFalse( array_values( $skill->get_scripts() )[0]->is_valid(), 'A script without a usable filename should not be publishable.' );
@@ -189,7 +189,7 @@ class Skill_Test extends \WP_UnitTestCase {
 	}
 
 	public function test_resolves_resource_blocks_into_their_packaged_file_paths() {
-		$skill = Skill::from_post_id( $this->create_skill_with_resources() );
+		$skill = Skill_Post::from_post_id( $this->create_skill_with_resources() );
 
 		$this->assertSame(
 			[ 'references/guide.md' ],
@@ -209,7 +209,7 @@ class Skill_Test extends \WP_UnitTestCase {
 	}
 
 	public function test_lists_resources_in_skill_markdown_without_inlining_their_contents() {
-		$markdown = Skill::from_post_id( $this->create_skill_with_resources() )->get_as_markdown();
+		$markdown = Skill_Post::from_post_id( $this->create_skill_with_resources() )->get_as_markdown();
 
 		$this->assertStringContainsString( 'Run the helper.', $markdown, 'Regular instruction blocks should remain in SKILL.md.' );
 		$this->assertStringNotContainsString( 'echo hello', $markdown, 'Script contents should not be inlined into SKILL.md.' );
@@ -228,7 +228,7 @@ class Skill_Test extends \WP_UnitTestCase {
 				'post_content' => $this->serialize_script_block( 'check.sh', $content ),
 			]
 		);
-		$script = array_values( Skill::from_post_id( $post_id )->get_scripts() )[0];
+		$script = array_values( Skill_Post::from_post_id( $post_id )->get_scripts() )[0];
 
 		$this->assertNull( $script->get_attribute( 'content' ), 'Script content is sourced from the markup, so it should never reach PHP as a block attribute.' );
 		$this->assertSame( $content, $script->get_content(), 'Script content should be read out of the saved <pre><code> markup with its HTML entities decoded.' );
@@ -242,7 +242,7 @@ class Skill_Test extends \WP_UnitTestCase {
 				'post_content' => '<!-- wp:agent-pilot/agent-skill-script {"fileName":"empty.sh"} --><div class="wp-block-agent-pilot-agent-skill-script"></div><!-- /wp:agent-pilot/agent-skill-script -->',
 			]
 		);
-		$script = array_values( Skill::from_post_id( $post_id )->get_scripts() )[0];
+		$script = array_values( Skill_Post::from_post_id( $post_id )->get_scripts() )[0];
 
 		$this->assertNull( $script->get_content(), 'A Script block saved without a code element should not resolve to any content.' );
 	}
@@ -255,7 +255,7 @@ class Skill_Test extends \WP_UnitTestCase {
 				'post_content' => '<!-- wp:agent-pilot/agent-skill-reference {"fileName":"guide.html","format":"html"} --><div class="wp-block-agent-pilot-agent-skill-reference"></div><!-- /wp:agent-pilot/agent-skill-reference -->',
 			]
 		);
-		$references = array_values( Skill::from_post_id( $post_id )->get_references() );
+		$references = array_values( Skill_Post::from_post_id( $post_id )->get_references() );
 
 		$this->assertSame( 'references/guide.html', $references[0]->get_filename(), 'A filename that already carries its extension should not gain a second one.' );
 		$this->assertSame( 'html', $references[0]->get_format(), 'The stored format attribute should decide the published reference format.' );
@@ -264,11 +264,11 @@ class Skill_Test extends \WP_UnitTestCase {
 	public function test_publishes_custom_reference_content_in_the_selected_format() {
 		$this->assertSame(
 			"## Markdown Guide\n\nUse **blocks**.",
-			$this->create_reference_skill( 'md' )->get_files()['references/guide.md'],
+			$this->create_reference_skill( 'md' )->get_files()->get_contents( 'references/guide.md' ),
 			'A Markdown reference should convert the blocks authored inside it to Markdown.'
 		);
 
-		$html = $this->create_reference_skill( 'html' )->get_files()['references/guide.html'];
+		$html = $this->create_reference_skill( 'html' )->get_files()->get_contents( 'references/guide.html' );
 
 		$this->assertStringContainsString( '<h2 class="wp-block-heading">Markdown Guide</h2>', $html, 'An HTML reference should keep its rendered markup.' );
 		$this->assertStringContainsString( 'Use <strong>blocks</strong>.', $html, 'An HTML reference should keep its inline markup.' );
@@ -294,7 +294,7 @@ class Skill_Test extends \WP_UnitTestCase {
 
 		$this->assertSame(
 			'Linked guidance.',
-			Skill::from_post_id( $post_id )->get_files()['references/guide.md'],
+			Skill_Post::from_post_id( $post_id )->get_files()->get_contents( 'references/guide.md' ),
 			'A selected post should be the source of the reference, in place of any custom content.'
 		);
 	}
@@ -307,9 +307,80 @@ class Skill_Test extends \WP_UnitTestCase {
 				'post_content' => '<!-- wp:agent-pilot/agent-skill-reference {"fileName":"guide","format":"md"} --><div class="wp-block-agent-pilot-agent-skill-reference"></div><!-- /wp:agent-pilot/agent-skill-reference -->',
 			]
 		);
-		$reference = array_values( Skill::from_post_id( $post_id )->get_references() )[0];
+		$reference = array_values( Skill_Post::from_post_id( $post_id )->get_references() )[0];
 
 		$this->assertNull( $reference->get_content(), 'A Reference placeholder should not publish an empty file.' );
+	}
+
+	public function test_packaged_files_are_named_before_any_of_them_is_generated() {
+		$upload = wp_upload_bits( 'agent-pilot-diagram.txt', null, "Asset bytes\n" );
+		$attachment_id = self::factory()->attachment->create_object(
+			$upload['file'],
+			0,
+			[ 'post_mime_type' => 'text/plain' ]
+		);
+		$post_id = self::factory()->post->create(
+			[
+				'post_type' => Plugin::POST_TYPE_AGENT_SKILL,
+				'post_name' => 'packaged-skill',
+				'post_content' => implode(
+					'',
+					[
+						'<!-- wp:agent-pilot/agent-skill --><div class="wp-block-agent-pilot-agent-skill"><!-- wp:paragraph --><p>Instructions.</p><!-- /wp:paragraph --></div><!-- /wp:agent-pilot/agent-skill -->',
+						'<!-- wp:agent-pilot/agent-skill-script {"fileName":"build.sh"} --><pre class="wp-block-agent-pilot-agent-skill-script"><code>composer test</code></pre><!-- /wp:agent-pilot/agent-skill-script -->',
+						'<!-- wp:agent-pilot/agent-skill-script --><div class="wp-block-agent-pilot-agent-skill-script"></div><!-- /wp:agent-pilot/agent-skill-script -->',
+						sprintf( '<!-- wp:agent-pilot/agent-skill-asset {"attachmentId":%d,"fileName":"notes.txt"} --><div class="wp-block-agent-pilot-agent-skill-asset"></div><!-- /wp:agent-pilot/agent-skill-asset -->', $attachment_id ),
+						'<!-- wp:agent-pilot/agent-skill-reference {"fileName":"guide","format":"md"} --><div class="wp-block-agent-pilot-agent-skill-reference"><!-- wp:paragraph --><p>Guide.</p><!-- /wp:paragraph --></div><!-- /wp:agent-pilot/agent-skill-reference -->',
+					]
+				),
+			]
+		);
+		$skill = Skill_Post::from_post_id( $post_id );
+
+		$this->assertSame(
+			[ 'SKILL.md', 'scripts/build.sh', 'assets/notes.txt', 'references/guide.md' ],
+			$skill->get_files()->get_paths(),
+			'A skill should name every file it packages, in the order it packages them.'
+		);
+		$this->assertSame(
+			$skill->get_files()->get_paths(),
+			array_keys( $skill->get_files()->to_array() ),
+			'The paths a skill names and the files it generates are one declaration, so they cannot disagree.'
+		);
+	}
+
+	public function test_editing_a_linked_reference_changes_the_skill_hash() {
+		$reference_id = self::factory()->post->create(
+			[
+				'post_content' => '<!-- wp:paragraph --><p>Original guide.</p><!-- /wp:paragraph -->',
+				'post_date' => '2020-01-01 00:00:00',
+			]
+		);
+		$post_id = self::factory()->post->create(
+			[
+				'post_type' => Plugin::POST_TYPE_AGENT_SKILL,
+				'post_name' => 'linked-skill',
+				'post_date' => '2020-01-01 00:00:00',
+				'post_content' => sprintf( '<!-- wp:agent-pilot/agent-skill-reference {"fileName":"guide","format":"md","postId":%d} --><div class="wp-block-agent-pilot-agent-skill-reference"></div><!-- /wp:agent-pilot/agent-skill-reference -->', $reference_id ),
+			]
+		);
+		$before = Skill_Post::from_post_id( $post_id )->get_hash();
+
+		wp_update_post(
+			[
+				'ID' => $reference_id,
+				'post_content' => '<!-- wp:paragraph --><p>Revised guide.</p><!-- /wp:paragraph -->',
+			]
+		);
+
+		$after = Skill_Post::from_post_id( $post_id )->get_hash();
+
+		$this->assertNotSame( $before, $after, 'The hash is the cache key for the generated archive, so editing a reference the skill publishes has to change it or a stale archive is served.' );
+		$this->assertGreaterThan(
+			(int) get_post_modified_time( 'U', true, $post_id ),
+			(int) Skill_Post::from_post_id( $post_id )->get_last_modified(),
+			'A skill changed when the content it links to changed, even though its own post did not.'
+		);
 	}
 
 	public function test_asset_content_is_the_exact_attachment_bytes() {
@@ -328,7 +399,7 @@ class Skill_Test extends \WP_UnitTestCase {
 				'post_content' => sprintf( '<!-- wp:agent-pilot/agent-skill-asset {"attachmentId":%d,"fileName":"notes.txt"} --><div class="wp-block-agent-pilot-agent-skill-asset"></div><!-- /wp:agent-pilot/agent-skill-asset -->', $attachment_id ),
 			]
 		);
-		$asset = array_values( Skill::from_post_id( $post_id )->get_assets() )[0];
+		$asset = array_values( Skill_Post::from_post_id( $post_id )->get_assets() )[0];
 
 		$this->assertSame( "Asset bytes\n", $asset->get_content(), 'Assets should publish the attachment bytes untouched, whatever their extension implies.' );
 	}
@@ -351,7 +422,7 @@ class Skill_Test extends \WP_UnitTestCase {
 				),
 			]
 		);
-		$skill = Skill::from_post_id( $post_id );
+		$skill = Skill_Post::from_post_id( $post_id );
 		$markdown = $skill->get_as_markdown();
 
 		$this->assertFalse( array_values( $skill->get_references() )[0]->is_valid(), 'A Reference placeholder without a filename should not be publishable.' );
@@ -371,8 +442,8 @@ class Skill_Test extends \WP_UnitTestCase {
 			]
 		);
 
-		$this->assertFalse( Skill::from_post_id( $plain_post_id )->is_archive(), 'A skill without resource blocks is a single SKILL.md file.' );
-		$this->assertTrue( Skill::from_post_id( $this->create_skill_with_resources() )->is_archive(), 'A skill carrying resource blocks needs to be published as an archive.' );
+		$this->assertFalse( Skill_Post::from_post_id( $plain_post_id )->is_archive(), 'A skill without resource blocks is a single SKILL.md file.' );
+		$this->assertTrue( Skill_Post::from_post_id( $this->create_skill_with_resources() )->is_archive(), 'A skill carrying resource blocks needs to be published as an archive.' );
 	}
 
 	private function create_skill_with_resources(): int {
@@ -398,7 +469,7 @@ class Skill_Test extends \WP_UnitTestCase {
 		);
 	}
 
-	private function create_reference_skill( string $format ): Skill {
+	private function create_reference_skill( string $format ): Skill_Post {
 		$post_id = self::factory()->post->create(
 			[
 				'post_type' => Plugin::POST_TYPE_AGENT_SKILL,
@@ -410,7 +481,7 @@ class Skill_Test extends \WP_UnitTestCase {
 			]
 		);
 
-		return Skill::from_post_id( $post_id );
+		return Skill_Post::from_post_id( $post_id );
 	}
 
 	/**
@@ -425,7 +496,7 @@ class Skill_Test extends \WP_UnitTestCase {
 
 		return serialize_block(
 			[
-				'blockName' => Skill::SCRIPT_BLOCK_NAME,
+				'blockName' => Skill_Post::SCRIPT_BLOCK_NAME,
 				'attrs' => [
 					'fileName' => $filename,
 				],

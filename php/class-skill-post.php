@@ -5,7 +5,7 @@ namespace WPElevator\Agent_Pilot;
 use WP_Post;
 use WP_Block;
 
-class Skill {
+class Skill_Post extends Post implements Agent_Package {
 
 	public const BLOCK_NAME = 'agent-pilot/agent-skill';
 
@@ -16,6 +16,8 @@ class Skill {
 	public const ASSET_BLOCK_NAME = 'agent-pilot/agent-skill-asset';
 
 	public const NAME_PATTERN = '[a-z0-9]+(?:-[a-z0-9]+)*';
+
+	public const FILE_SKILL_MD = 'SKILL.md';
 
 	public const META_KEY_COMPATIBILITY = 'agent_pilot__compatibility';
 
@@ -34,21 +36,6 @@ class Skill {
 		self::ASSET_BLOCK_NAME,
 	];
 
-	private WP_Post $post;
-	private Content_Blocks $content_blocks;
-
-	public function __construct( WP_Post $post ) {
-		$this->post = $post;
-	}
-
-	private function get_blocks( array $names = [] ): array {
-		if ( ! isset( $this->content_blocks ) ) {
-			$this->content_blocks = Content_Blocks::from_content( $this->post->post_content );
-		}
-
-		return $this->content_blocks->get_blocks( $names );
-	}
-
 	public static function from_post_id( int $post_id ): ?self {
 		$post = get_post( $post_id );
 
@@ -61,7 +48,6 @@ class Skill {
 
 	public function get_hash(): string {
 		$parts = [
-			// TODO: account for changes to linked posts in references and assets.
 			$this->post->ID,
 			$this->post->post_content,
 			$this->get_last_modified() ?? '',
@@ -70,20 +56,51 @@ class Skill {
 		return md5( implode( '|', $parts ) );
 	}
 
-	public function get_post(): WP_Post {
-		return $this->post;
-	}
+	/**
+	 * A skill changes when its own post changes, and also when a post or an
+	 * attachment it publishes the content of changes somewhere else entirely.
+	 *
+	 * Both this and the hash built on it are cache keys for the generated files,
+	 * so leaving linked content out of them served a stale archive after a
+	 * reference was edited. An attachment counts as changed when its post is
+	 * updated, which replacing the file through WordPress does; overwriting the
+	 * bytes underneath it without touching the attachment does not.
+	 */
+	public function get_last_modified(): ?int {
+		$timestamps = [ parent::get_last_modified() ];
 
-	public function get_id(): int {
-		return $this->post->ID;
-	}
-
-	public function get_permalink(): string {
-		if ( ! $this->is_published() ) {
-			return get_preview_post_link( $this->post );
+		foreach ( $this->get_linked_post_ids() as $post_id ) {
+			$timestamps[] = (int) get_post_modified_time( 'U', true, $post_id );
 		}
 
-		return get_permalink( $this->post );
+		$timestamps = array_filter( $timestamps );
+
+		return ! empty( $timestamps ) ? max( $timestamps ) : null;
+	}
+
+	/**
+	 * The posts whose content this skill publishes as its own files.
+	 *
+	 * @return int[]
+	 */
+	private function get_linked_post_ids(): array {
+		$ids = [];
+
+		$references = array_filter( $this->get_references(), fn ( Skill_Reference $reference ): bool => $reference->is_valid() );
+		foreach ( $references as $reference ) {
+			$reference_post = $reference->get_reference_post();
+
+			if ( $reference_post ) {
+				$ids[] = $reference_post->ID;
+			}
+		}
+
+		$assets = array_filter( $this->get_assets(), fn ( Skill_Asset $asset ): bool => $asset->is_valid() );
+		foreach ( $assets as $asset ) {
+			$ids[] = (int) $asset->get_attachment_id();
+		}
+
+		return array_values( array_unique( array_filter( $ids ) ) );
 	}
 
 	public function is_archive(): bool {
@@ -92,45 +109,14 @@ class Skill {
 		return ! empty( $resource_blocks );
 	}
 
-	public function get_name(): string {
-		if ( empty( $this->post->post_name ) ) {
-			return sprintf( 'agent-skill-%d-draft', $this->post->ID );
-		}
-
-		return $this->post->post_name;
-	}
-
-	public function get_title(): string {
-		return $this->post->post_title;
-	}
-
-	public function get_description(): string {
-		return trim( $this->normalize_newlines( wp_strip_all_tags( $this->post->post_excerpt ) ) );
+	protected function get_draft_name(): string {
+		return sprintf( '%s-%d-draft', Plugin::PERMALINK_PREFIX_AGENT_SKILL, $this->post->ID );
 	}
 
 	public function get_compatibility(): string {
 		$compatibility = get_post_meta( $this->post->ID, self::META_KEY_COMPATIBILITY, true );
 
 		return trim( $this->normalize_newlines( wp_strip_all_tags( (string) $compatibility ) ) );
-	}
-
-	public function is_published(): bool {
-		return 'publish' === $this->post->post_status;
-	}
-
-	public function get_last_modified(): ?int {
-		// TODO: account for changes to linked references and assets.
-		$timestamp = get_post_modified_time( 'U', true, $this->post );
-
-		if ( ! $timestamp ) {
-			$timestamp = get_post_time( 'U', true, $this->post );
-		}
-
-		if ( $timestamp ) {
-			return (int) $timestamp;
-		}
-
-		return null;
 	}
 
 	public function get_front_matter(): array {
@@ -141,29 +127,51 @@ class Skill {
 		];
 	}
 
-	public function get_files(): array {
-		$files = [
-			'SKILL.md' => $this->get_as_markdown(),
-		];
+	/**
+	 * Every path is known from the blocks alone, so a listing can name the files
+	 * of every skill on a site without any of them being generated. Only reading
+	 * one renders its blocks or reads its attachment.
+	 */
+	public function get_files(): Agent_Package_Files {
+		$files = new Agent_Package_Files(
+			[
+				Package_File::from_callback( self::FILE_SKILL_MD, fn (): string => $this->get_as_markdown() ),
+			]
+		);
 
 		$scripts = array_filter( $this->get_scripts(), fn ( Skill_Script $script ): bool => $script->is_valid() );
 		foreach ( $scripts as $script ) {
-			$files[ $script->get_filename() ] = $script->get_content();
+			$files->add(
+				Package_File::from_callback(
+					(string) $script->get_filename(),
+					fn (): string => (string) $script->get_content()
+				)
+			);
 		}
 
 		$assets = array_filter( $this->get_assets(), fn ( Skill_Asset $asset ): bool => $asset->is_valid() );
 		foreach ( $assets as $asset ) {
-			$files[ $asset->get_filename() ] = $asset->get_content();
+			$files->add(
+				Package_File::from_asset(
+					(string) $asset->get_filename(),
+					[ $asset, 'get_content' ],
+					(string) $asset->get_attachment_url(),
+					(string) get_post_mime_type( (int) $asset->get_attachment_id() )
+				)
+			);
 		}
 
 		$references = array_filter( $this->get_references(), fn ( Skill_Reference $reference ): bool => $reference->is_valid() );
 		foreach ( $references as $reference ) {
 			// TODO: Add the title of the post as heading.
-			if ( 'md' === $reference->get_format() ) {
-				$files[ $reference->get_filename() ] = Markdown::from_blocks( $reference->get_blocks() );
-			} else {
-				$files[ $reference->get_filename() ] = $reference->get_content(); // This is the default HTML.
-			}
+			$files->add(
+				Package_File::from_callback(
+					(string) $reference->get_filename(),
+					fn (): string => 'md' === $reference->get_format()
+						? Markdown::from_blocks( $reference->get_blocks() )
+						: (string) $reference->get_content() // This is the default HTML.
+				)
+			);
 		}
 
 		return $files;
@@ -280,9 +288,5 @@ class Skill {
 			fn ( WP_Block $block ): Skill_Asset => new Skill_Asset( $block ),
 			$this->get_blocks( [ self::ASSET_BLOCK_NAME ] )
 		);
-	}
-
-	private function normalize_newlines( string $value ): string {
-		return str_replace( [ "\r\n", "\r" ], "\n", $value );
 	}
 }

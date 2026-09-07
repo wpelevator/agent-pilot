@@ -48,6 +48,8 @@ class Server {
 
 	private Tools $tools;
 
+	private Resources $resources;
+
 	private Authentication $authentication;
 
 	private Sessions $sessions;
@@ -64,8 +66,9 @@ class Server {
 	 */
 	private ?string $challenge = null;
 
-	public function __construct( Tools $tools, Authentication $authentication, Sessions $sessions, Settings $settings, string $version = '' ) {
+	public function __construct( Tools $tools, Resources $resources, Authentication $authentication, Sessions $sessions, Settings $settings, string $version = '' ) {
 		$this->tools = $tools;
+		$this->resources = $resources;
 		$this->authentication = $authentication;
 		$this->sessions = $sessions;
 		$this->settings = $settings;
@@ -366,6 +369,12 @@ class Server {
 
 			case 'tools/call':
 				return $this->handle_tools_call( $params, $identity );
+
+			case 'resources/list':
+				return [ 'resources' => $this->resources->get_resources() ];
+
+			case 'resources/read':
+				return $this->handle_resources_read( $params );
 		}
 
 		return new WP_Error(
@@ -424,12 +433,40 @@ class Server {
 		return $this->tools->call( $name, is_array( $arguments ) ? $arguments : [], $identity );
 	}
 
+	/**
+	 * @return array|WP_Error
+	 */
+	private function handle_resources_read( array $params ) {
+		$uri = (string) ( $params['uri'] ?? '' );
+
+		if ( '' === $uri ) {
+			return new WP_Error(
+				'agent_pilot_mcp_missing_resource_uri',
+				__( 'A resource URI is required.', 'wpelevator-agent-pilot' ),
+				[ 'code' => Json_Rpc::INVALID_PARAMS ]
+			);
+		}
+
+		$contents = $this->resources->read( $uri );
+
+		if ( is_wp_error( $contents ) ) {
+			return $contents;
+		}
+
+		return [ 'contents' => $contents ];
+	}
+
 	private function get_capabilities(): array {
 		return [
 			'tools' => [
 				// The tool list changes only when a site's plugins change, and
 				// this server holds no stream to announce it on.
 				'listChanged' => false,
+			],
+			'resources' => [
+				// Same reasoning, and nothing to subscribe to without a stream.
+				'listChanged' => false,
+				'subscribe' => false,
 			],
 		];
 	}

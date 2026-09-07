@@ -2,11 +2,10 @@
 
 namespace WPElevator\Agent_Pilot_Tests;
 
-use WPElevator\Agent_Pilot\Agent_Plugin;
+use WPElevator\Agent_Pilot\Agent_Plugin_Post;
 use WPElevator\Agent_Pilot\Plugin;
-use WPElevator\Agent_Pilot\Skills;
 
-class Agent_Plugin_Test extends \WP_UnitTestCase {
+class Agent_Plugin_Post_Test extends \WP_UnitTestCase {
 
 	public function test_registered_block_schema_filters_invalid_attributes() {
 		$plugin = $this->create_plugin(
@@ -34,7 +33,7 @@ class Agent_Plugin_Test extends \WP_UnitTestCase {
 
 		$this->assertSame( [], $plugin->get_errors(), 'A skill block with nothing selected yet should be skipped rather than fail validation.' );
 		$this->assertTrue( $plugin->is_valid(), 'An MCP server alone should package even while an empty skill block is still in the editor.' );
-		$this->assertSame( [ 'plugin.json', 'mcp.json' ], array_keys( $plugin->get_files() ), 'An unselected skill block should contribute no files.' );
+		$this->assertSame( [ 'plugin.json', 'mcp.json' ], $plugin->get_files()->get_paths(), 'An unselected skill block should contribute no files.' );
 	}
 
 	public function test_unselected_skill_block_alone_still_requires_a_component() {
@@ -53,7 +52,27 @@ class Agent_Plugin_Test extends \WP_UnitTestCase {
 		$this->assertContains( 'Each selected skill must reference an existing Agent Skill.', $plugin->get_errors(), 'A selected skill that is not an Agent Skill post should still fail validation.' );
 	}
 
-	private function create_plugin( string $name, array $children, string $attributes = '' ): Agent_Plugin {
+	public function test_bundled_skill_files_are_named_under_their_own_directory() {
+		$skill_id = self::factory()->post->create(
+			[
+				'post_type' => Plugin::POST_TYPE_AGENT_SKILL,
+				'post_name' => 'bundled-skill',
+				'post_content' => '<!-- wp:agent-pilot/agent-skill-script {"fileName":"build.sh"} --><pre class="wp-block-agent-pilot-agent-skill-script"><code>composer test</code></pre><!-- /wp:agent-pilot/agent-skill-script -->',
+			]
+		);
+		$plugin = $this->create_plugin(
+			'packaged-plugin',
+			[ sprintf( '<!-- wp:agent-pilot/agent-plugin-skill {"skillId":%d} /-->', $skill_id ) ]
+		);
+
+		$this->assertSame(
+			[ 'plugin.json', 'mcp.json', 'skills/bundled-skill/SKILL.md', 'skills/bundled-skill/scripts/build.sh' ],
+			$plugin->get_files()->get_paths(),
+			'A package should name its own files and those of every skill it bundles, under that skill\'s directory.'
+		);
+	}
+
+	private function create_plugin( string $name, array $children, string $attributes = '' ): Agent_Plugin_Post {
 		$content = implode(
 			'',
 			array_merge(
@@ -75,6 +94,6 @@ class Agent_Plugin_Test extends \WP_UnitTestCase {
 			]
 		);
 
-		return new Agent_Plugin( get_post( $post_id ), new Skills( Plugin::POST_TYPE_AGENT_SKILL ) );
+		return new Agent_Plugin_Post( get_post( $post_id ) );
 	}
 }

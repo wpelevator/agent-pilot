@@ -223,6 +223,27 @@ Because requests are dispatched internally rather than served over HTTP, they ne
 
 Because this single tool can modify and delete content, it requires `wp:write` for OAuth callers, including when making a `GET` request. It is annotated as potentially destructive and non-idempotent. The MCP server's existing ability query and registration filters also apply to this built-in ability.
 
+### Built-in skill and plugin abilities
+
+Agent Pilot registers four read-only abilities on WordPress 6.9 or newer, so that a client can find and read what this site publishes without being told its routes first:
+
+| Ability | MCP tool | Answers |
+| --- | --- | --- |
+| `agent-pilot/list-agent-skills` | `agent-pilot.list-agent-skills` | Every skill the caller may see, with its description, compatibility, status, packaged file paths and archive URL. |
+| `agent-pilot/get-agent-skill` | `agent-pilot.get-agent-skill` | One skill by name, with the contents of its generated `SKILL.md` or of a named file. |
+| `agent-pilot/list-agent-plugins` | `agent-pilot.list-agent-plugins` | Every Agent Plugin the caller may see, with the skills and MCP servers it bundles and any validation errors. |
+| `agent-pilot/get-agent-plugin` | `agent-pilot.get-agent-plugin` | One Agent Plugin by name, with the contents of its `plugin.json` or of a named file. |
+
+They answer with the generated artifacts rather than with the post content behind them. A skill is authored as blocks, so its post content is an editor document that no agent can act on, while `SKILL.md`, the files packaged beside it, `plugin.json` and `mcp.json` are the ones the specifications define. Pass a path from an item's own `files` list as the `file` argument to read one of them. An asset is attachment bytes rather than text, so it is answered with the URL to download it from instead of being inlined into a result.
+
+A skill is installed from the archive its `package_url` points at rather than from `SKILL.md`, because a skill that has references, scripts or assets is only complete as an archive: the Markdown lists those files but does not carry them. An Agent Plugin publishes its own `package_url` the same way.
+
+Throughout, *package* is the generated archive a client installs, while the two things that generate one are always named as the specifications name them: an Agent Skill and an Agent Plugin.
+
+Visibility follows the site rather than a capability of its own. A published skill or Agent Plugin is readable by anyone, because the same content is already served without authentication from its permalink and from the discovery index, and everything else falls back to the capabilities WordPress maps for the post type — the same rule the discovery routes apply, so an ability never shows less, or more, than the site itself does. A skill the caller may not read is reported as missing rather than as forbidden, so that comparing two refusals cannot reveal which unpublished names exist. An item with no slug yet is listed under a generated name such as `agent-skill-12-draft`, which reads back through the same abilities.
+
+All four are annotated read-only and require only `wp:read`, so a client connected with a read-only token can call them. Writing is not covered yet: creating or editing a skill means composing the block markup the editor produces, which is a design question of its own.
+
 ### Exposing abilities
 
 An ability opts in through its registration meta, using the same flag the official WordPress MCP Adapter reads, so an ability written for either server works with both:
@@ -300,6 +321,27 @@ Replacing the query replaces the per-ability opt-in rule along with it, which is
 
 A result is returned as a JSON text block, plus `structuredContent` when the ability advertises an object output schema. A failing ability comes back as a tool result with `isError` set rather than a protocol error, so the model can correct itself and retry.
 
+### Resources
+
+Every file of every skill and Agent Plugin the caller may read is also published as an MCP resource, so an agent can read the bytes over the same authenticated connection it discovered them on:
+
+```text
+agent-pilot://skills/{name}
+agent-pilot://skills/{name}/SKILL.md
+agent-pilot://skills/{name}/references/guide.md
+agent-pilot://skills/{name}/assets/diagram.png
+agent-pilot://plugins/{name}/plugin.json
+agent-pilot://plugins/{name}/skills/{skill}/SKILL.md
+```
+
+This is the difference from the URLs the tools hand out. An unpublished package is served from a preview link that needs a WordPress session, and an access token minted for this server is deliberately not accepted anywhere else, so a client could list a draft skill through a tool and then fail to fetch it. A resource read answers with the contents themselves.
+
+Whether contents are carried as `text` or as a base64 `blob` follows the media type rather than where the file came from: an uploaded text file is text, a PNG is a blob. Generated files are text, named as `text/markdown`, `text/html` or `application/json` where that is more precise than `text/plain`.
+
+`resources/list` names every file without generating any of them, and omits `size` for the same reason. Each entry carries `annotations.lastModified` from the package it belongs to. The set narrows to what the caller may read, which the specification allows because credentials are per-request rather than connection state. A URI naming a package the caller may not read is refused exactly as an unknown one is, with `-32602`, so the two cannot be told apart.
+
+The bare package URI reads as every file the package publishes, which the specification allows a read to answer with, so a client takes a whole package in one round trip and each file still arrives under its own media type rather than packed into an archive it would have to unpack. The generated ZIP stays an HTTP download, since a client that can fetch it needs no help and one that cannot can read the files here.
+
 ### Authentication
 
 Every request must be authenticated. The server accepts, in order:
@@ -357,6 +399,7 @@ Requests without an `Origin` header are accepted so desktop and server-side MCP 
 ## TODO
 
 - Making the skills available as ChatGPT and Claude plugins.
+- Write abilities for skills and plugins, once composing their block content from an agent is designed.
 - Ensure that skill slugs match the spec on save.
 - Consider a setting to disable single skill post type views (single template) while keeping the markdown preview.
 - Bump skill md and zip hash when a linked reference post or attachment is updated.

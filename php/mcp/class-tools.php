@@ -387,7 +387,30 @@ class Tools {
 			);
 		}
 
-		$input = $this->get_input( $ability, $arguments );
+		$raw_input = $this->get_input( $ability, $arguments );
+
+		/*
+		 * Core runs `normalize_input()` and `validate_input()` before it reaches
+		 * a permission callback, but only inside `execute()`. Checking
+		 * permissions first, as below, would otherwise hand every ability on
+		 * this server the raw arguments a client sent, and a permission callback
+		 * that reads its own input — deciding what a call would touch before
+		 * allowing it — would be reading whatever arrived. So the same two steps
+		 * run here, in the same order core uses. `execute()` repeats them from
+		 * the raw input so normalization filters do not transform an already
+		 * normalized value again.
+		 */
+		$input = $ability->normalize_input( $raw_input );
+
+		if ( is_wp_error( $input ) ) {
+			return $this->to_error_result( $input );
+		}
+
+		$valid = $ability->validate_input( $input );
+
+		if ( is_wp_error( $valid ) ) {
+			return $this->to_error_result( $valid );
+		}
 
 		/*
 		 * `execute()` deliberately returns a generic message when permissions
@@ -409,7 +432,7 @@ class Tools {
 			);
 		}
 
-		$result = $ability->execute( $input );
+		$result = $ability->execute( $raw_input );
 
 		if ( is_wp_error( $result ) ) {
 			return $this->to_error_result( $result );

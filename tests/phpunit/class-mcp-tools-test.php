@@ -39,6 +39,70 @@ class MCP_Tools_Test extends MCP_Test_Case {
 		$this->assertSame( $ability, $this->tools->get_ability( 'agent-pilot-test.disabled' ), 'Clearing exclusions should restore normal tool mapping immediately.' );
 	}
 
+	public function test_invalid_arguments_are_refused_before_the_permission_callback_sees_them() {
+		$checked = false;
+		$this->register_ability(
+			'agent-pilot-test/validated',
+			[
+				'input_schema' => [
+					'type' => 'object',
+					'properties' => [
+						'id' => [ 'type' => 'integer' ],
+					],
+					'required' => [ 'id' ],
+					'additionalProperties' => false,
+				],
+				'permission_callback' => function () use ( &$checked ): bool {
+					$checked = true;
+					return true;
+				},
+			]
+		);
+
+		$result = $this->tools->call( 'agent-pilot-test.validated', [ 'id' => 'not-an-integer' ], $this->get_unscoped_identity() );
+
+		$this->assertTrue( $result['isError'], 'Arguments that do not match the tool schema should come back as a tool error the model can correct.' );
+		$this->assertFalse( $checked, 'A permission callback decides what a call would touch by reading its input, so it must never be handed arguments core has not validated.' );
+	}
+
+	public function test_a_permission_callback_decides_on_the_same_input_the_tool_executes_with() {
+		$this->register_ability(
+			'agent-pilot-test/defaulted',
+			[
+				'input_schema' => [
+					'type' => 'string',
+					'default' => 'hello',
+				],
+				'permission_callback' => fn( $input ): bool => 'hello' === $input,
+				'execute_callback' => fn( $input ): string => (string) $input,
+			]
+		);
+
+		$result = $this->tools->call( 'agent-pilot-test.defaulted', [], $this->get_unscoped_identity() );
+
+		$this->assertIsArray( $result, 'A tool whose schema defaults the omitted value should be permitted, since normalization runs before the permission check as it does inside execute().' );
+		$this->assertSame( 'hello', $result['content'][0]['text'], 'The default the permission callback was granted on should be the one the ability executes with.' );
+	}
+
+	public function test_input_is_normalized_once_even_though_it_is_checked_before_it_runs() {
+		$this->register_ability(
+			'agent-pilot-test/normalized',
+			[
+				'input_schema' => [ 'type' => 'string' ],
+				'execute_callback' => fn ( $input ): string => (string) $input,
+			]
+		);
+		add_filter( 'wp_ability_normalize_input', fn ( $input ): string => $input . '!' );
+
+		$result = $this->tools->call( 'agent-pilot-test.normalized', [ 'value' => 'hi' ], $this->get_unscoped_identity() );
+
+		$this->assertSame(
+			'hi!',
+			$result['content'][0]['text'],
+			'Checking permissions before executing means normalizing before executing, so the ability has to be handed the input it started with rather than the normalized copy, or a site filter that transforms input runs twice.'
+		);
+	}
+
 	public function test_disabled_abilities_stay_excluded_from_custom_queries() {
 		$this->register_ability( 'agent-pilot-test/disabled' );
 		update_option( ( new Settings() )->get_option_name( 'mcp_disabled_abilities' ), [ 'agent-pilot-test/disabled' ] );

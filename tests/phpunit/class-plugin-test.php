@@ -3,11 +3,11 @@
 namespace WPElevator\Agent_Pilot_Tests;
 
 use WPElevator\Agent_Pilot\Discovery;
-use WPElevator\Agent_Pilot\Agent_Plugin;
+use WPElevator\Agent_Pilot\Agent_Plugin_Post;
 use WPElevator\Agent_Pilot\Plugin;
 use WPElevator\Agent_Pilot\Request;
 use WPElevator\Agent_Pilot\Response_Emitter;
-use WPElevator\Agent_Pilot\Skill;
+use WPElevator\Agent_Pilot\Skill_Post;
 use WPElevator\Agent_Pilot\Skills;
 
 class Plugin_Test extends \WP_UnitTestCase {
@@ -45,7 +45,7 @@ class Plugin_Test extends \WP_UnitTestCase {
 		$this->assertSame(
 			[
 				[
-					Skill::BLOCK_NAME,
+					Skill_Post::BLOCK_NAME,
 					[],
 					[
 						[ 'core/paragraph' ],
@@ -64,11 +64,11 @@ class Plugin_Test extends \WP_UnitTestCase {
 		$this->assertSame(
 			[
 				[
-					Agent_Plugin::BLOCK_NAME_PLUGIN,
+					Agent_Plugin_Post::BLOCK_NAME_PLUGIN,
 					[],
 					[
-						[ Agent_Plugin::BLOCK_NAME_SKILL ],
-						[ Agent_Plugin::BLOCK_NAME_MCP ],
+						[ Agent_Plugin_Post::BLOCK_NAME_SKILL ],
+						[ Agent_Plugin_Post::BLOCK_NAME_MCP ],
 					],
 				],
 			],
@@ -99,10 +99,10 @@ class Plugin_Test extends \WP_UnitTestCase {
 	public function test_registers_compatibility_post_meta() {
 		$registered_meta = get_registered_meta_keys( 'post', Plugin::POST_TYPE_AGENT_SKILL );
 
-		$this->assertArrayHasKey( Skill::META_KEY_COMPATIBILITY, $registered_meta, 'The compatibility field should be registered as Agent Skill post meta.' );
-		$this->assertSame( 'string', $registered_meta[ Skill::META_KEY_COMPATIBILITY ]['type'], 'Compatibility post meta should be stored as a string.' );
-		$this->assertTrue( $registered_meta[ Skill::META_KEY_COMPATIBILITY ]['single'], 'Compatibility post meta should store one value per skill.' );
-		$this->assertTrue( $registered_meta[ Skill::META_KEY_COMPATIBILITY ]['show_in_rest'], 'Compatibility post meta should be editable through the REST API and block editor.' );
+		$this->assertArrayHasKey( Skill_Post::META_KEY_COMPATIBILITY, $registered_meta, 'The compatibility field should be registered as Agent Skill post meta.' );
+		$this->assertSame( 'string', $registered_meta[ Skill_Post::META_KEY_COMPATIBILITY ]['type'], 'Compatibility post meta should be stored as a string.' );
+		$this->assertTrue( $registered_meta[ Skill_Post::META_KEY_COMPATIBILITY ]['single'], 'Compatibility post meta should store one value per skill.' );
+		$this->assertTrue( $registered_meta[ Skill_Post::META_KEY_COMPATIBILITY ]['show_in_rest'], 'Compatibility post meta should be editable through the REST API and block editor.' );
 	}
 
 	public function test_rest_api_saves_compatibility_post_meta() {
@@ -117,14 +117,14 @@ class Plugin_Test extends \WP_UnitTestCase {
 		$request->set_body_params(
 			[
 				'meta' => [
-					Skill::META_KEY_COMPATIBILITY => 'Requires Docker and WP-CLI.',
+					Skill_Post::META_KEY_COMPATIBILITY => 'Requires Docker and WP-CLI.',
 				],
 			]
 		);
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status(), 'The Agent Skill REST endpoint should accept editor saves.' );
-		$this->assertSame( 'Requires Docker and WP-CLI.', get_post_meta( $post_id, Skill::META_KEY_COMPATIBILITY, true ), 'Compatibility meta should persist when saved through the REST API.' );
+		$this->assertSame( 'Requires Docker and WP-CLI.', get_post_meta( $post_id, Skill_Post::META_KEY_COMPATIBILITY, true ), 'Compatibility meta should persist when saved through the REST API.' );
 	}
 
 	public function test_rest_response_includes_the_skill_links() {
@@ -143,19 +143,19 @@ class Plugin_Test extends \WP_UnitTestCase {
 		$this->assertSame( 200, $response->get_status(), 'The Agent Skill REST endpoint should return the requested skill.' );
 		$this->assertSame( get_permalink( $post_id ), $response->get_data()['skill_permalink'], 'The editor should receive the regular WordPress skill permalink.' );
 		$this->assertSame(
-			$discovery->get_skill_md_url( Skill::from_post_id( $post_id ) ),
+			$discovery->get_skill_md_url( Skill_Post::from_post_id( $post_id ) ),
 			$response->get_data()['skill_file_url'],
 			'The editor sidebar should receive the generated SKILL.md URL owned by discovery.'
 		);
 		$this->assertSame(
-			$discovery->get_skill_zip_url( Skill::from_post_id( $post_id ) ),
+			$discovery->get_skill_zip_url( Skill_Post::from_post_id( $post_id ) ),
 			$response->get_data()['skill_zip_url'],
 			'The editor sidebar should receive the generated skill ZIP URL owned by discovery.'
 		);
 	}
 
 	public function test_human_skill_output_renders_generated_markdown_in_a_preformatted_block() {
-		if ( ! \WP_Block_Type_Registry::get_instance()->is_registered( Skill::BLOCK_NAME ) ) {
+		if ( ! \WP_Block_Type_Registry::get_instance()->is_registered( Skill_Post::BLOCK_NAME ) ) {
 			register_block_type( dirname( __DIR__, 2 ) . '/build/blocks/agent-skill' );
 		}
 
@@ -207,10 +207,10 @@ class Plugin_Test extends \WP_UnitTestCase {
 		$skill_context = new \WP_Block_Editor_Context( [ 'post' => get_post( self::factory()->post->create( [ 'post_type' => Plugin::POST_TYPE_AGENT_SKILL ] ) ) ] );
 		$allowed = $this->plugin->filter_allowed_block_types( [ 'core/paragraph' ], $skill_context );
 
-		$this->assertContains( Skill::BLOCK_NAME, $allowed, 'A restricted editor should still offer the Agent Skill wrapper.' );
-		$this->assertContains( Skill::REFERENCE_BLOCK_NAME, $allowed, 'A restricted editor should still offer Reference resources.' );
-		$this->assertContains( Skill::SCRIPT_BLOCK_NAME, $allowed, 'A restricted editor should still offer Script resources.' );
-		$this->assertContains( Skill::ASSET_BLOCK_NAME, $allowed, 'A restricted editor should still offer Asset resources.' );
+		$this->assertContains( Skill_Post::BLOCK_NAME, $allowed, 'A restricted editor should still offer the Agent Skill wrapper.' );
+		$this->assertContains( Skill_Post::REFERENCE_BLOCK_NAME, $allowed, 'A restricted editor should still offer Reference resources.' );
+		$this->assertContains( Skill_Post::SCRIPT_BLOCK_NAME, $allowed, 'A restricted editor should still offer Script resources.' );
+		$this->assertContains( Skill_Post::ASSET_BLOCK_NAME, $allowed, 'A restricted editor should still offer Asset resources.' );
 		$this->assertSame( array_values( array_unique( $allowed ) ), $allowed, 'The merged block catalog should not repeat block names.' );
 		$this->assertSame(
 			[ 'core/paragraph' ],

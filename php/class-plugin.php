@@ -10,6 +10,34 @@ class Plugin {
 	public const PERMALINK_PREFIX_AGENT_PLUGIN = 'agent-plugin';
 	public const PERMALINK_PREFIX_AGENT_SKILL = 'agent-skill';
 
+	/**
+	 * The one Abilities API category every Agent Pilot ability is registered in.
+	 *
+	 * A category may be registered only once, so it belongs here rather than to
+	 * any of the components that register abilities into it.
+	 */
+	public const ABILITY_CATEGORY = 'agent-pilot';
+
+	/**
+	 * The names this plugin's abilities are registered under.
+	 *
+	 * The classes that define them know nothing about these: each returns the
+	 * arguments for one ability, and the names are bound in
+	 * `action_register_abilities()`, so the whole surface this plugin adds to a
+	 * site can be read in one place and renamed without touching the definition.
+	 */
+	public const ABILITY_LIST_SKILLS = 'agent-pilot/list-agent-skills';
+	public const ABILITY_GET_SKILL = 'agent-pilot/get-agent-skill';
+	public const ABILITY_LIST_PLUGINS = 'agent-pilot/list-agent-plugins';
+	public const ABILITY_GET_PLUGIN = 'agent-pilot/get-agent-plugin';
+	public const ABILITY_REST_CALL = 'agent-pilot/rest-call';
+
+	/**
+	 * The collections the MCP resource URIs address packages under.
+	 */
+	public const RESOURCE_COLLECTION_SKILLS = 'skills';
+	public const RESOURCE_COLLECTION_PLUGINS = 'plugins';
+
 	private const SETTINGS_SLUG = 'agent-pilot';
 
 	private string $plugin_file;
@@ -22,7 +50,6 @@ class Plugin {
 
 	private MCP\Settings $mcp_settings;
 	private MCP\Server $mcp_server;
-	private Rest_Ability $rest_ability;
 
 	public function __construct( string $plugin_file ) {
 		$this->plugin_file = $plugin_file;
@@ -30,13 +57,23 @@ class Plugin {
 		$this->skills = new Skills( self::POST_TYPE_AGENT_SKILL );
 		$response_emitter = new Response_Emitter( Request::from_globals() );
 		$this->discovery = new Discovery( $this->skills, $response_emitter );
-		$this->agent_plugins = new Agent_Plugins( $this->skills );
+		$this->agent_plugins = new Agent_Plugins();
 		$this->plugin_discovery = new Agent_Plugin_Discovery( $this->agent_plugins, $response_emitter );
 
 		$this->mcp_settings = new MCP\Settings();
-		$this->rest_ability = new Rest_Ability();
 		$this->mcp_server = new MCP\Server(
 			new MCP\Tools( $this->mcp_settings ),
+			new MCP\Resources(
+				/*
+				 * Resolved per request rather than at construction, so that a
+				 * listing reflects who is asking: each collection holds only the
+				 * packages the current caller is allowed to see.
+				 */
+				fn (): array => [
+					self::RESOURCE_COLLECTION_SKILLS => $this->skills->get_readable_skills(),
+					self::RESOURCE_COLLECTION_PLUGINS => $this->agent_plugins->get_readable_plugins(),
+				]
+			),
 			new MCP\Authentication(),
 			new MCP\Sessions(),
 			$this->mcp_settings,
@@ -47,6 +84,8 @@ class Plugin {
 	public function init() {
 		add_action( 'init', [ $this, 'action_register_post_type' ] );
 		add_action( 'init', [ $this, 'action_register_blocks' ] );
+		add_action( 'wp_abilities_api_categories_init', [ $this, 'action_register_ability_category' ] );
+		add_action( 'wp_abilities_api_init', [ $this, 'action_register_abilities' ] );
 		add_action( 'rest_api_init', [ $this, 'action_register_rest_fields' ] );
 		add_filter( 'allowed_block_types_all', [ $this, 'filter_allowed_block_types' ], 10, 2 );
 		add_action( 'admin_menu', [ $this, 'action_register_settings_page' ] );
@@ -55,7 +94,6 @@ class Plugin {
 		$this->discovery->init();
 		$this->plugin_discovery->init();
 		$this->mcp_server->init();
-		$this->rest_ability->init();
 	}
 
 	public function get_basename(): string {
@@ -82,6 +120,33 @@ class Plugin {
 
 	public function get_agent_plugins(): Agent_Plugins {
 		return $this->agent_plugins;
+	}
+
+	public function action_register_abilities(): void {
+		$skills = new Skill_Abilities( $this->skills, $this->discovery );
+		$plugins = new Agent_Plugin_Abilities( $this->agent_plugins, $this->plugin_discovery );
+
+		$abilities = [
+			self::ABILITY_LIST_SKILLS => $skills->get_list_args(),
+			self::ABILITY_GET_SKILL => $skills->get_read_args(),
+			self::ABILITY_LIST_PLUGINS => $plugins->get_list_args(),
+			self::ABILITY_GET_PLUGIN => $plugins->get_read_args(),
+			self::ABILITY_REST_CALL => ( new Rest_Ability() )->get_args(),
+		];
+
+		foreach ( $abilities as $name => $args ) {
+			wp_register_ability( $name, $args );
+		}
+	}
+
+	public function action_register_ability_category(): void {
+		wp_register_ability_category(
+			self::ABILITY_CATEGORY,
+			[
+				'label' => __( 'Agent Pilot', 'wpelevator-agent-pilot' ),
+				'description' => __( 'Interact with this WordPress site.', 'wpelevator-agent-pilot' ),
+			]
+		);
 	}
 
 	public function action_register_settings_page(): void {
@@ -227,7 +292,7 @@ class Plugin {
 			'skill_permalink',
 			[
 				'get_callback' => function ( array $post ): ?string {
-					$skill = Skill::from_post_id( (int) $post['id'] );
+					$skill = Skill_Post::from_post_id( (int) $post['id'] );
 
 					if ( $skill ) {
 						return $skill->get_permalink();
@@ -245,17 +310,17 @@ class Plugin {
 			]
 		);
 		foreach ( [
-			'plugin_permalink' => fn( Agent_Plugin $plugin ): ?string => $plugin->get_permalink(),
-			'plugin_manifest_url' => fn( Agent_Plugin $plugin ): ?string => $this->plugin_discovery->get_plugin_json_url( $plugin ),
-			'plugin_mcp_url' => fn( Agent_Plugin $plugin ): ?string => $this->plugin_discovery->get_mcp_json_url( $plugin ),
-			'plugin_package_url' => fn( Agent_Plugin $plugin ): ?string => $this->plugin_discovery->get_plugin_zip_url( $plugin ),
+			'plugin_permalink' => fn( Agent_Plugin_Post $plugin ): ?string => $plugin->get_permalink(),
+			'plugin_manifest_url' => fn( Agent_Plugin_Post $plugin ): ?string => $this->plugin_discovery->get_plugin_json_url( $plugin ),
+			'plugin_mcp_url' => fn( Agent_Plugin_Post $plugin ): ?string => $this->plugin_discovery->get_mcp_json_url( $plugin ),
+			'plugin_package_url' => fn( Agent_Plugin_Post $plugin ): ?string => $this->plugin_discovery->get_plugin_zip_url( $plugin ),
 		] as $field => $callback ) {
 			register_rest_field(
 				self::POST_TYPE_AGENT_PLUGIN,
 				$field,
 				[
 					'get_callback' => function ( array $post ) use ( $callback ): ?string {
-						return $callback( new Agent_Plugin( get_post( (int) $post['id'] ), $this->skills ) );
+						return $callback( new Agent_Plugin_Post( get_post( (int) $post['id'] ) ) );
 					},
 					'schema' => [
 						'type' => 'string',
@@ -271,7 +336,7 @@ class Plugin {
 			'plugin_validation',
 			[
 				'get_callback' => function ( array $post ): array {
-					return ( new Agent_Plugin( get_post( (int) $post['id'] ), $this->skills ) )->get_errors();
+					return ( new Agent_Plugin_Post( get_post( (int) $post['id'] ) ) )->get_errors();
 				},
 				'schema' => [
 					'type' => 'array',
@@ -286,7 +351,7 @@ class Plugin {
 			'skill_file_url',
 			[
 				'get_callback' => function ( array $post ): ?string {
-					$skill = Skill::from_post_id( (int) $post['id'] );
+					$skill = Skill_Post::from_post_id( (int) $post['id'] );
 
 					if ( $skill ) {
 						return $this->discovery->get_skill_md_url( $skill );
@@ -308,7 +373,7 @@ class Plugin {
 			'skill_zip_url',
 			[
 				'get_callback' => function ( array $post ): ?string {
-					$skill = Skill::from_post_id( (int) $post['id'] );
+					$skill = Skill_Post::from_post_id( (int) $post['id'] );
 
 					if ( $skill ) {
 						return $this->discovery->get_skill_zip_url( $skill );
@@ -358,7 +423,7 @@ class Plugin {
 				'supports' => [ 'title', 'editor', 'excerpt', 'author', 'revisions', 'custom-fields' ],
 				'template' => [
 					[
-						Skill::BLOCK_NAME,
+						Skill_Post::BLOCK_NAME,
 						[],
 						[
 							[ 'core/paragraph' ],
@@ -371,7 +436,7 @@ class Plugin {
 
 		register_post_meta(
 			self::POST_TYPE_AGENT_SKILL,
-			Skill::META_KEY_COMPATIBILITY,
+			Skill_Post::META_KEY_COMPATIBILITY,
 			[
 				'type' => 'string',
 				'description' => __( 'Agent Skills compatibility requirements.', 'wpelevator-agent-pilot' ),
@@ -404,11 +469,11 @@ class Plugin {
 				'supports' => [ 'title', 'editor', 'excerpt', 'author', 'revisions' ],
 				'template' => [
 					[
-						Agent_Plugin::BLOCK_NAME_PLUGIN,
+						Agent_Plugin_Post::BLOCK_NAME_PLUGIN,
 						[],
 						[
-							[ Agent_Plugin::BLOCK_NAME_SKILL ],
-							[ Agent_Plugin::BLOCK_NAME_MCP ],
+							[ Agent_Plugin_Post::BLOCK_NAME_SKILL ],
+							[ Agent_Plugin_Post::BLOCK_NAME_MCP ],
 						],
 					],
 				],
@@ -457,8 +522,8 @@ class Plugin {
 		}
 
 		$blocks = self::POST_TYPE_AGENT_SKILL === $block_editor_context->post->post_type
-			? array_merge( [ Skill::BLOCK_NAME ], Skill::ALLOWED_BLOCKS )
-			: [ Agent_Plugin::BLOCK_NAME_PLUGIN, Agent_Plugin::BLOCK_NAME_SKILL, Agent_Plugin::BLOCK_NAME_MCP ];
+			? array_merge( [ Skill_Post::BLOCK_NAME ], Skill_Post::ALLOWED_BLOCKS )
+			: [ Agent_Plugin_Post::BLOCK_NAME_PLUGIN, Agent_Plugin_Post::BLOCK_NAME_SKILL, Agent_Plugin_Post::BLOCK_NAME_MCP ];
 		return array_values(
 			array_unique(
 				array_merge( (array) $allowed_block_types, $blocks )
