@@ -21,8 +21,8 @@ class Rest_Ability_Test extends MCP_Test_Case {
 		$ability = wp_get_ability( Plugin::ABILITY_REST_CALL );
 
 		$this->assertInstanceOf( \WP_Ability::class, $ability, 'Plugin initialization should register the REST ability.' );
-		$this->assertContains( 'agent-pilot.rest-call', wp_list_pluck( $this->tools->get_tools( $this->get_unscoped_identity() ), 'name' ), 'The built-in ability should be exposed as an MCP tool.' );
-		$this->assertNotContains( 'agent-pilot.rest-call', wp_list_pluck( $this->tools->get_tools( $this->get_token_identity( [ Authentication::SCOPE_READ ] ) ), 'name' ), 'A generic REST tool can modify data and must require write scope even for GET calls.' );
+		$this->assertContains( 'agent-pilot-rest-call', wp_list_pluck( $this->tools->get_tools( $this->get_unscoped_identity() ), 'name' ), 'The built-in ability should be exposed as an MCP tool.' );
+		$this->assertNotContains( 'agent-pilot-rest-call', wp_list_pluck( $this->tools->get_tools( $this->get_token_identity( [ Authentication::SCOPE_READ ] ) ), 'name' ), 'A generic REST tool can modify data and must require write scope even for GET calls.' );
 	}
 
 	public function test_anonymous_call_is_rejected() {
@@ -140,7 +140,7 @@ class Rest_Ability_Test extends MCP_Test_Case {
 		$this->assertSame( 403, $result->get_error_data()['status'], 'REST endpoint permissions must prevent subscribers from creating posts.' );
 		$this->assertSame( 'rest_cannot_create', $result->get_error_code(), 'The native permission error should reach the caller.' );
 		$tool_result = $this->tools->call(
-			'agent-pilot.rest-call',
+			'agent-pilot-rest-call',
 			[
 				'method' => 'POST',
 				'route' => '/wp/v2/posts',

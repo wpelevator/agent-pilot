@@ -26,17 +26,17 @@ class MCP_Tools_Test extends MCP_Test_Case {
 		update_option( $option, [ $ability->get_name() ] );
 
 		$names = wp_list_pluck( $this->tools->get_tools( $this->get_unscoped_identity() ), 'name' );
-		$result = $this->tools->call( 'agent-pilot-test.disabled', [], $this->get_unscoped_identity() );
+		$result = $this->tools->call( 'agent-pilot-test-disabled', [], $this->get_unscoped_identity() );
 
-		$this->assertNotContains( 'agent-pilot-test.disabled', $names, 'A disabled ability should disappear from tool discovery.' );
-		$this->assertContains( 'agent-pilot-test.enabled', $names, 'Other eligible abilities should remain discoverable.' );
+		$this->assertNotContains( 'agent-pilot-test-disabled', $names, 'A disabled ability should disappear from tool discovery.' );
+		$this->assertContains( 'agent-pilot-test-enabled', $names, 'Other eligible abilities should remain discoverable.' );
 		$this->assertWPError( $result, 'A client that remembers the disabled tool name must not be able to call it.' );
 		$this->assertSame( 404, $result->get_error_data()['status'], 'Disabled tools should be treated as unavailable.' );
 		$this->assertFalse( $executed, 'The disabled ability callback must not execute.' );
 		$this->assertSame( $ability, wp_get_ability( $ability->get_name() ), 'Disabling MCP mapping must not unregister the WordPress ability.' );
 
 		update_option( $option, [] );
-		$this->assertSame( $ability, $this->tools->get_ability( 'agent-pilot-test.disabled' ), 'Clearing exclusions should restore normal tool mapping immediately.' );
+		$this->assertSame( $ability, $this->tools->get_ability( 'agent-pilot-test-disabled' ), 'Clearing exclusions should restore normal tool mapping immediately.' );
 	}
 
 	public function test_invalid_arguments_are_refused_before_the_permission_callback_sees_them() {
@@ -59,7 +59,7 @@ class MCP_Tools_Test extends MCP_Test_Case {
 			]
 		);
 
-		$result = $this->tools->call( 'agent-pilot-test.validated', [ 'id' => 'not-an-integer' ], $this->get_unscoped_identity() );
+		$result = $this->tools->call( 'agent-pilot-test-validated', [ 'id' => 'not-an-integer' ], $this->get_unscoped_identity() );
 
 		$this->assertTrue( $result['isError'], 'Arguments that do not match the tool schema should come back as a tool error the model can correct.' );
 		$this->assertFalse( $checked, 'A permission callback decides what a call would touch by reading its input, so it must never be handed arguments core has not validated.' );
@@ -78,7 +78,7 @@ class MCP_Tools_Test extends MCP_Test_Case {
 			]
 		);
 
-		$result = $this->tools->call( 'agent-pilot-test.defaulted', [], $this->get_unscoped_identity() );
+		$result = $this->tools->call( 'agent-pilot-test-defaulted', [], $this->get_unscoped_identity() );
 
 		$this->assertIsArray( $result, 'A tool whose schema defaults the omitted value should be permitted, since normalization runs before the permission check as it does inside execute().' );
 		$this->assertSame( 'hello', $result['content'][0]['text'], 'The default the permission callback was granted on should be the one the ability executes with.' );
@@ -94,7 +94,7 @@ class MCP_Tools_Test extends MCP_Test_Case {
 		);
 		add_filter( 'wp_ability_normalize_input', fn ( $input ): string => $input . '!' );
 
-		$result = $this->tools->call( 'agent-pilot-test.normalized', [ 'value' => 'hi' ], $this->get_unscoped_identity() );
+		$result = $this->tools->call( 'agent-pilot-test-normalized', [ 'value' => 'hi' ], $this->get_unscoped_identity() );
 
 		$this->assertSame(
 			'hi!',
@@ -112,17 +112,19 @@ class MCP_Tools_Test extends MCP_Test_Case {
 		$this->assertArrayHasKey( 'agent-pilot-test/disabled', $this->tools->get_available_abilities(), 'The settings screen must still be able to list a disabled ability for re-enabling.' );
 	}
 
-	public function test_tool_name_maps_reversibly_to_ability_name() {
+	public function test_tool_name_uses_dashes_and_resolves_ability_with_existing_dashes() {
+		$this->register_ability( 'agent-pilot-test/read-thing' );
+
 		$this->assertSame(
-			'agent-pilot-test.read-thing',
+			'agent-pilot-test-read-thing',
 			$this->tools->get_tool_name( 'agent-pilot-test/read-thing' ),
-			'An ability name should become a tool name by swapping the slash for a dot, since MCP tool names may not contain slashes.'
+			'An ability name should become a tool name by swapping the slash for a dash, since MCP tool names may not contain slashes or dots.'
 		);
 
 		$this->assertSame(
 			'agent-pilot-test/read-thing',
-			$this->tools->get_ability_name( 'agent-pilot-test.read-thing' ),
-			'The tool name should map back to exactly the ability name it came from.'
+			$this->tools->get_ability( 'agent-pilot-test-read-thing' )->get_name(),
+			'Tool lookup should compare generated names so dashes already present in an ability name remain unambiguous.'
 		);
 	}
 
@@ -411,7 +413,7 @@ class MCP_Tools_Test extends MCP_Test_Case {
 
 		$tool = $this->tools->to_tool( $ability );
 
-		$this->assertSame( 'agent-pilot-test.described', $tool['name'], 'The tool name should be the mapped ability name.' );
+		$this->assertSame( 'agent-pilot-test-described', $tool['name'], 'The tool name should be the mapped ability name.' );
 		$this->assertSame( 'Described Ability', $tool['title'], 'The ability label should become the tool title.' );
 		$this->assertSame( 'Does a described thing.', $tool['description'], 'The ability description should become the tool description.' );
 		$this->assertIsArray( $tool['inputSchema'], 'Every tool must carry an inputSchema, even when the ability takes no input.' );
@@ -431,8 +433,8 @@ class MCP_Tools_Test extends MCP_Test_Case {
 
 		$names = wp_list_pluck( $this->tools->get_tools( $this->get_token_identity( [ Authentication::SCOPE_READ ] ) ), 'name' );
 
-		$this->assertContains( 'agent-pilot-test.read-thing', $names, 'A read-only token should still see the read tools.' );
-		$this->assertNotContains( 'agent-pilot-test.write-thing', $names, 'A read-only token should never learn that the write tools exist.' );
+		$this->assertContains( 'agent-pilot-test-read-thing', $names, 'A read-only token should still see the read tools.' );
+		$this->assertNotContains( 'agent-pilot-test-write-thing', $names, 'A read-only token should never learn that the write tools exist.' );
 	}
 
 	public function test_unscoped_identity_sees_every_tool() {
@@ -440,7 +442,7 @@ class MCP_Tools_Test extends MCP_Test_Case {
 
 		$names = wp_list_pluck( $this->tools->get_tools( $this->get_unscoped_identity() ), 'name' );
 
-		$this->assertContains( 'agent-pilot-test.write-thing', $names, 'A request authenticated by WordPress itself has no token to narrow, so every tool should be listed.' );
+		$this->assertContains( 'agent-pilot-test-write-thing', $names, 'A request authenticated by WordPress itself has no token to narrow, so every tool should be listed.' );
 	}
 
 	public function test_call_returns_text_and_structured_content() {
@@ -459,7 +461,7 @@ class MCP_Tools_Test extends MCP_Test_Case {
 			]
 		);
 
-		$result = $this->tools->call( 'agent-pilot-test.structured', [ 'name' => 'Ada' ], $this->get_unscoped_identity() );
+		$result = $this->tools->call( 'agent-pilot-test-structured', [ 'name' => 'Ada' ], $this->get_unscoped_identity() );
 
 		$this->assertFalse( $result['isError'], 'A successful call should not be flagged as an error.' );
 		$this->assertSame( [ 'greeting' => 'Hello Ada' ], $result['structuredContent'], 'An ability with an object output schema should return its result as structuredContent.' );
@@ -476,7 +478,7 @@ class MCP_Tools_Test extends MCP_Test_Case {
 		);
 
 		$result = $this->tools->call(
-			'agent-pilot-test.scalar-call',
+			'agent-pilot-test-scalar-call',
 			[ Tools::WRAPPED_INPUT_PROPERTY => 'quiet' ],
 			$this->get_unscoped_identity()
 		);
@@ -494,7 +496,7 @@ class MCP_Tools_Test extends MCP_Test_Case {
 			]
 		);
 
-		$result = $this->tools->call( 'agent-pilot-test.no-input-call', [], $this->get_unscoped_identity() );
+		$result = $this->tools->call( 'agent-pilot-test-no-input-call', [], $this->get_unscoped_identity() );
 
 		$this->assertFalse(
 			$result['isError'],
@@ -515,14 +517,14 @@ class MCP_Tools_Test extends MCP_Test_Case {
 			]
 		);
 
-		$result = $this->tools->call( 'agent-pilot-test.failing', [], $this->get_unscoped_identity() );
+		$result = $this->tools->call( 'agent-pilot-test-failing', [], $this->get_unscoped_identity() );
 
 		$this->assertTrue( $result['isError'], 'An execution failure should be reported inside the result so the model can correct itself.' );
 		$this->assertSame( 'The thing could not be done.', $result['content'][0]['text'], 'The ability error message should reach the caller.' );
 	}
 
 	public function test_call_rejects_an_unknown_tool() {
-		$result = $this->tools->call( 'agent-pilot-test.missing', [], $this->get_unscoped_identity() );
+		$result = $this->tools->call( 'agent-pilot-test-missing', [], $this->get_unscoped_identity() );
 
 		$this->assertWPError( $result, 'An unknown tool is a protocol error rather than a tool error.' );
 		$this->assertSame( 404, $result->get_error_data()['status'], 'An unknown tool should be reported as not found.' );
@@ -536,7 +538,7 @@ class MCP_Tools_Test extends MCP_Test_Case {
 			]
 		);
 
-		$result = $this->tools->call( 'agent-pilot-test.hidden', [], $this->get_unscoped_identity() );
+		$result = $this->tools->call( 'agent-pilot-test-hidden', [], $this->get_unscoped_identity() );
 
 		$this->assertWPError( $result, 'Resolving a tool must go through the exposed set, so an ability that never opted in stays unreachable.' );
 	}
@@ -545,7 +547,7 @@ class MCP_Tools_Test extends MCP_Test_Case {
 		$this->register_ability( 'agent-pilot-test/write-thing' );
 
 		$result = $this->tools->call(
-			'agent-pilot-test.write-thing',
+			'agent-pilot-test-write-thing',
 			[],
 			$this->get_token_identity( [ Authentication::SCOPE_READ ] )
 		);
@@ -562,7 +564,7 @@ class MCP_Tools_Test extends MCP_Test_Case {
 			]
 		);
 
-		$result = $this->tools->call( 'agent-pilot-test.denied', [], $this->get_unscoped_identity() );
+		$result = $this->tools->call( 'agent-pilot-test-denied', [], $this->get_unscoped_identity() );
 
 		$this->assertWPError( $result, 'A scope grant never widens what the user may do, so the ability permission callback still decides.' );
 		$this->assertSame( 403, $result->get_error_data()['status'], 'A denied permission callback should be reported as forbidden.' );

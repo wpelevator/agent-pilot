@@ -26,12 +26,11 @@ class Tools {
 	public const META_KEY = 'mcp';
 
 	/**
-	 * MCP tool names may not contain a forward slash, and ability names may
-	 * contain only lowercase alphanumerics, dashes and slashes. Since a dot can
-	 * never appear in an ability name, swapping it for the slash is a lossless,
-	 * reversible mapping: `core/read-settings` becomes `core.read-settings`.
+	 * MCP tool names may contain only lowercase alphanumerics, dashes and
+	 * underscores. Replace the ability's namespace slash with a dash:
+	 * `core/read-settings` becomes `core-read-settings`.
 	 */
-	public const NAME_SEPARATOR = '.';
+	public const NAME_SEPARATOR = '-';
 
 	/**
 	 * The property a non-object ability input schema is wrapped in, because MCP
@@ -200,10 +199,6 @@ class Tools {
 		return str_replace( '/', self::NAME_SEPARATOR, $ability_name );
 	}
 
-	public function get_ability_name( string $tool_name ): string {
-		return str_replace( self::NAME_SEPARATOR, '/', $tool_name );
-	}
-
 	/**
 	 * The OAuth scopes a tool requires, derived from the ability's own
 	 * annotation of itself.
@@ -346,9 +341,15 @@ class Tools {
 	 * caller reach an ability that never opted in to MCP.
 	 */
 	public function get_ability( string $tool_name ): ?WP_Ability {
-		$abilities = $this->get_abilities();
+		$ability = null;
 
-		return $abilities[ $this->get_ability_name( $tool_name ) ] ?? null;
+		foreach ( $this->get_abilities() as $ability_name => $candidate ) {
+			if ( $tool_name === $this->get_tool_name( $ability_name ) ) {
+				$ability = $candidate;
+			}
+		}
+
+		return $ability;
 	}
 
 	/**

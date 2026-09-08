@@ -198,7 +198,7 @@ class MCP_Authentication_Test extends MCP_Test_Case {
 		$token = $this->issue_token();
 		$this->set_bearer( $token['value'] );
 
-		$response = $this->post( $this->message( 'tools/call', [ 'name' => 'agent-pilot-test.whoami' ] ) );
+		$response = $this->post( $this->message( 'tools/call', [ 'name' => 'agent-pilot-test-whoami' ] ) );
 
 		$this->assertSame( 200, $response->get_status(), 'A live token bound to this resource should be accepted.' );
 		$this->assertSame(
@@ -249,8 +249,8 @@ class MCP_Authentication_Test extends MCP_Test_Case {
 
 		$names = wp_list_pluck( $this->post( $this->message( 'tools/list' ) )->get_data()['result']['tools'], 'name' );
 
-		$this->assertContains( 'agent-pilot-test.read-thing', $names, 'A read token should see the read-only tools.' );
-		$this->assertNotContains( 'agent-pilot-test.write-thing', $names, 'A read token should never learn that the write tools exist.' );
+		$this->assertContains( 'agent-pilot-test-read-thing', $names, 'A read token should see the read-only tools.' );
+		$this->assertNotContains( 'agent-pilot-test-write-thing', $names, 'A read token should never learn that the write tools exist.' );
 	}
 
 	public function test_a_read_token_is_refused_a_write_tool() {
@@ -258,7 +258,7 @@ class MCP_Authentication_Test extends MCP_Test_Case {
 
 		$this->set_bearer( $this->issue_token( [ Authentication::SCOPE_READ ] )['value'] );
 
-		$response = $this->post( $this->message( 'tools/call', [ 'name' => 'agent-pilot-test.write-thing' ] ) );
+		$response = $this->post( $this->message( 'tools/call', [ 'name' => 'agent-pilot-test-write-thing' ] ) );
 
 		$this->assertSame(
 			403,
@@ -288,7 +288,7 @@ class MCP_Authentication_Test extends MCP_Test_Case {
 		// OAuth Pilot expands wp:write to imply wp:read at issuance.
 		$this->set_bearer( $this->issue_token( [ Authentication::SCOPE_WRITE ] )['value'] );
 
-		$response = $this->post( $this->message( 'tools/call', [ 'name' => 'agent-pilot-test.write-thing' ] ) );
+		$response = $this->post( $this->message( 'tools/call', [ 'name' => 'agent-pilot-test-write-thing' ] ) );
 
 		$this->assertSame( 'written', $response->get_data()['result']['content'][0]['text'], 'A write token should be able to call a write tool.' );
 	}
@@ -306,7 +306,7 @@ class MCP_Authentication_Test extends MCP_Test_Case {
 			'A site without OAuth Pilot, or an administrator using an Application Password, must still be able to reach the server.'
 		);
 		$this->assertContains(
-			'agent-pilot-test.write-thing',
+			'agent-pilot-test-write-thing',
 			wp_list_pluck( $response->get_data()['result']['tools'], 'name' ),
 			'A request WordPress authenticated itself has no token to narrow, so every tool should be listed.'
 		);

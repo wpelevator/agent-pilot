@@ -245,7 +245,7 @@ class MCP_Server_Test extends MCP_Test_Case {
 
 		$names = wp_list_pluck( $this->post( $this->message( 'tools/list' ) )->get_data()['result']['tools'], 'name' );
 
-		$this->assertContains( 'agent-pilot-test.listed', $names, 'An opted-in ability should appear in tools/list.' );
+		$this->assertContains( 'agent-pilot-test-listed', $names, 'An opted-in ability should appear in tools/list.' );
 	}
 
 	public function test_tools_call_executes_the_ability() {
@@ -264,7 +264,7 @@ class MCP_Server_Test extends MCP_Test_Case {
 			$this->message(
 				'tools/call',
 				[
-					'name' => 'agent-pilot-test.called',
+					'name' => 'agent-pilot-test-called',
 					'arguments' => [ 'name' => 'Ada' ],
 				]
 			)
@@ -286,7 +286,7 @@ class MCP_Server_Test extends MCP_Test_Case {
 		$response = $this->post(
 			$this->message(
 				'tools/call',
-				[ 'name' => 'agent-pilot-test.missing' ]
+				[ 'name' => 'agent-pilot-test-missing' ]
 			)
 		);
 

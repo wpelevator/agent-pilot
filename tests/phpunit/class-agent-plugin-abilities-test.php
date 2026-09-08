@@ -20,8 +20,8 @@ class Agent_Plugin_Abilities_Test extends MCP_Test_Case {
 
 		$this->assertInstanceOf( \WP_Ability::class, wp_get_ability( Plugin::ABILITY_LIST_PLUGINS ), 'The plugins component should register its listing ability.' );
 		$this->assertInstanceOf( \WP_Ability::class, wp_get_ability( Plugin::ABILITY_GET_PLUGIN ), 'The plugins component should register its read ability.' );
-		$this->assertContains( 'agent-pilot.list-agent-plugins', $tools, 'Reading Agent Plugins should be available to a client holding only the read scope.' );
-		$this->assertContains( 'agent-pilot.get-agent-plugin', $tools, 'Reading one Agent Plugin should be available to a client holding only the read scope.' );
+		$this->assertContains( 'agent-pilot-list-agent-plugins', $tools, 'Reading Agent Plugins should be available to a client holding only the read scope.' );
+		$this->assertContains( 'agent-pilot-get-agent-plugin', $tools, 'Reading one Agent Plugin should be available to a client holding only the read scope.' );
 	}
 
 	public function test_listing_shows_published_plugins_to_anonymous_callers_and_hides_the_rest() {

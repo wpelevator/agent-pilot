@@ -20,8 +20,8 @@ class Skill_Abilities_Test extends MCP_Test_Case {
 
 		$this->assertInstanceOf( \WP_Ability::class, wp_get_ability( Plugin::ABILITY_LIST_SKILLS ), 'The skills component should register its listing ability.' );
 		$this->assertInstanceOf( \WP_Ability::class, wp_get_ability( Plugin::ABILITY_GET_SKILL ), 'The skills component should register its read ability.' );
-		$this->assertContains( 'agent-pilot.list-agent-skills', $tools, 'Reading skills should be available to a client holding only the read scope.' );
-		$this->assertContains( 'agent-pilot.get-agent-skill', $tools, 'Reading one skill should be available to a client holding only the read scope.' );
+		$this->assertContains( 'agent-pilot-list-agent-skills', $tools, 'Reading skills should be available to a client holding only the read scope.' );
+		$this->assertContains( 'agent-pilot-get-agent-skill', $tools, 'Reading one skill should be available to a client holding only the read scope.' );
 	}
 
 	public function test_listing_shows_published_skills_to_anonymous_callers_and_hides_the_rest() {

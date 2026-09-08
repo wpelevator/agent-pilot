@@ -207,7 +207,7 @@ The setting is stored per site as `agent_pilot__mcp_disabled_abilities`, an arra
 
 ### Built-in REST ability
 
-Agent Pilot registers `agent-pilot/rest-call` on WordPress 6.9 or newer and exposes it as the `agent-pilot.rest-call` MCP tool. Enable the MCP server to let authenticated clients discover and call this site's REST endpoints without registering an ability for each route. The ability is also compatible with the official WordPress MCP Adapter.
+Agent Pilot registers `agent-pilot/rest-call` on WordPress 6.9 or newer and exposes it as the `agent-pilot-rest-call` MCP tool. Enable the MCP server to let authenticated clients discover and call this site's REST endpoints without registering an ability for each route. The ability is also compatible with the official WordPress MCP Adapter.
 
 Pass `method`, `route` (an internal path without a query string), and optional `params`:
 
@@ -229,10 +229,10 @@ Agent Pilot registers four read-only abilities on WordPress 6.9 or newer, so tha
 
 | Ability | MCP tool | Answers |
 | --- | --- | --- |
-| `agent-pilot/list-agent-skills` | `agent-pilot.list-agent-skills` | Every skill the caller may see, with its description, compatibility, status, packaged file paths and archive URL. |
-| `agent-pilot/get-agent-skill` | `agent-pilot.get-agent-skill` | One skill by name, with the contents of its generated `SKILL.md` or of a named file. |
-| `agent-pilot/list-agent-plugins` | `agent-pilot.list-agent-plugins` | Every Agent Plugin the caller may see, with the skills and MCP servers it bundles and any validation errors. |
-| `agent-pilot/get-agent-plugin` | `agent-pilot.get-agent-plugin` | One Agent Plugin by name, with the contents of its `plugin.json` or of a named file. |
+| `agent-pilot/list-agent-skills` | `agent-pilot-list-agent-skills` | Every skill the caller may see, with its description, compatibility, status, packaged file paths and archive URL. |
+| `agent-pilot/get-agent-skill` | `agent-pilot-get-agent-skill` | One skill by name, with the contents of its generated `SKILL.md` or of a named file. |
+| `agent-pilot/list-agent-plugins` | `agent-pilot-list-agent-plugins` | Every Agent Plugin the caller may see, with the skills and MCP servers it bundles and any validation errors. |
+| `agent-pilot/get-agent-plugin` | `agent-pilot-get-agent-plugin` | One Agent Plugin by name, with the contents of its `plugin.json` or of a named file. |
 
 They answer with the generated artifacts rather than with the post content behind them. A skill is authored as blocks, so its post content is an editor document that no agent can act on, while `SKILL.md`, the files packaged beside it, `plugin.json` and `mcp.json` are the ones the specifications define. Pass a path from an item's own `files` list as the `file` argument to read one of them. An asset is attachment bytes rather than text, so it is answered with the URL to download it from instead of being inlined into a result.
 
