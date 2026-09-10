@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## 0.10.0 (2026-09-10)
+
+- Moved the Agent Pilot admin screens under one top-level menu. Settings is the default page, with Skills, Add Skill, Plugins and Add Plugin nested under it, and the Agent Skill and Agent Plugin post types no longer register their own top-level menus. The settings screen presents Skills and Plugins in the same form table as the MCP Server.
 - Changed MCP tool names to use dashes instead of dots, so they comply with the allowed tool-name characters.
 
 ## 0.9.0 (2026-09-07)

@@ -28,6 +28,8 @@ class Plugin_Test extends \WP_UnitTestCase {
 		$this->assertTrue( $post_type->public, 'Agent skills should have public WordPress single pages.' );
 		$this->assertTrue( $post_type->publicly_queryable, 'Agent skills should be available to front-end queries and Query Loop blocks.' );
 		$this->assertTrue( $post_type->show_ui, 'Authors should be able to manage skills in wp-admin.' );
+		$this->assertFalse( $post_type->show_in_menu, 'Agent Skills should not register their own top-level admin menu.' );
+		$this->assertTrue( $post_type->show_in_admin_bar, 'The admin bar New menu should still offer Agent Skills.' );
 		$this->assertTrue( $post_type->show_in_rest, 'The block editor and integrations should use the native REST API.' );
 		$this->assertSame( 'agent-skills', $post_type->rest_base, 'The REST base should match the public skill terminology.' );
 		$this->assertSame( Plugin::PERMALINK_PREFIX_AGENT_SKILL, $post_type->rewrite['slug'], 'Agent Skill permalinks should use the requested singular prefix.' );
@@ -88,12 +90,151 @@ class Plugin_Test extends \WP_UnitTestCase {
 		$this->assertNotFalse( has_filter( 'query_vars' ), 'Plugin initialization should boot the discovery endpoints.' );
 	}
 
+	public function test_settings_page_presents_skills_and_plugins_in_form_tables() {
+		ob_start();
+		$this->plugin->render_settings_page();
+		$html = ob_get_clean();
+		$document = new \DOMDocument();
+		$previous = libxml_use_internal_errors( true );
+		try {
+			$document->loadHTML( $html );
+		} finally {
+			libxml_clear_errors();
+			libxml_use_internal_errors( $previous );
+		}
+		$xpath = new \DOMXPath( $document );
+
+		$index_url = ( new Discovery( new Skills( Plugin::POST_TYPE_AGENT_SKILL ), new Response_Emitter( new Request() ) ) )->get_index_url();
+		$mcp_url = $this->plugin->get_mcp_server()->get_endpoint_url();
+
+		$this->assertSame( 3, $xpath->query( '//table[@class="form-table"]' )->length, 'Skills, Plugins and MCP Server should each use a settings form table.' );
+		$this->assertSame( 1, $xpath->query( '//th[normalize-space()="Manage Skills"]' )->length, 'The skills section should offer View and Add New from a Manage Skills row.' );
+		$this->assertSame( 1, $xpath->query( '//th[normalize-space()="Manage Plugins"]' )->length, 'The plugins section should offer View and Add New from a Manage Plugins row.' );
+		$this->assertSame( 1, $xpath->query( '//a[@href="' . esc_url( $this->plugin->get_skills_admin_url() ) . '" and normalize-space()="View"]' )->length, 'Manage Skills should link View to the Agent Skills list.' );
+		$this->assertSame( 1, $xpath->query( '//a[@href="' . esc_url( $this->plugin->get_skills_new_url() ) . '" and normalize-space()="Add New"]' )->length, 'Manage Skills should link Add New to the skill editor.' );
+		$this->assertSame( 1, $xpath->query( '//a[@href="' . esc_url( $this->plugin->get_plugins_admin_url() ) . '" and normalize-space()="View"]' )->length, 'Manage Plugins should link View to the Agent Plugins list.' );
+		$this->assertSame( 1, $xpath->query( '//a[@href="' . esc_url( $this->plugin->get_plugins_new_url() ) . '" and normalize-space()="Add New"]' )->length, 'Manage Plugins should link Add New to the plugin editor.' );
+		$this->assertSame( 1, $xpath->query( '//input[@readonly and contains(@onfocus, "select") and @value="' . $index_url . '"]' )->length, 'The discovery index should be a readonly field that selects on focus.' );
+		$this->assertSame( 1, $xpath->query( '//input[@readonly and contains(@onfocus, "select") and @value="' . $mcp_url . '"]' )->length, 'The MCP server URL should be a readonly field that selects on focus.' );
+		$this->assertSame( 1, $xpath->query( '//a[@href="' . esc_url( $index_url ) . '" and @target="_blank" and normalize-space()="Open"]' )->length, 'The discovery index should have an Open link in a new window.' );
+		$this->assertSame( 1, $xpath->query( '//a[@href="' . esc_url( $mcp_url ) . '" and @target="_blank" and normalize-space()="Open"]' )->length, 'The MCP server URL should have an Open link in a new window.' );
+		$this->assertSame( 2, $xpath->query( '//button[contains(@onclick, "agentPilotCopyField") and normalize-space()="Copy"]' )->length, 'Each copyable URL should have a Copy button before Open.' );
+		$this->assertSame( 0, $xpath->query( '//th[normalize-space()="Install"]' )->length, 'Install should live in the skills section description rather than a form table row.' );
+		$this->assertSame( 1, $xpath->query( '//h2[normalize-space()="Agent Skills"]/following-sibling::p[1]//code[contains(., "npx skills add")]' )->length, 'The skills section description should include the install command.' );
+		$this->assertSame( 1, $xpath->query( '//h2[normalize-space()="Agent Skills"]/following-sibling::p[1]//a[@href="https://www.npmjs.com/package/skills"]' )->length, 'The skills section description should link to the skills package.' );
+	}
+
 	public function test_plugin_action_links_point_at_the_skill_list_and_settings() {
 		$actions = $this->plugin->filter_plugin_action_links( [] );
 
 		$this->assertStringContainsString( esc_url( $this->plugin->get_skills_admin_url() ), $actions['skills'], 'The plugin list should link to the Agent Skills post list.' );
+		$this->assertStringContainsString( esc_url( $this->plugin->get_plugins_admin_url() ), $actions['plugins'], 'The plugin list should link to the Agent Plugins post list.' );
 		$this->assertStringContainsString( esc_url( $this->plugin->get_settings_url() ), $actions['settings'], 'The plugin list should link to the Agent Pilot settings page.' );
 		$this->assertSame( admin_url( 'edit.php?post_type=' . Plugin::POST_TYPE_AGENT_SKILL ), $this->plugin->get_skills_admin_url(), 'The skills admin URL should open the Agent Skill post list.' );
+		$this->assertSame( admin_url( 'admin.php?page=agent-pilot' ), $this->plugin->get_settings_url(), 'Settings should open as the Agent Pilot top-level menu page.' );
+	}
+
+	public function test_agent_plugin_post_type_does_not_register_its_own_menu() {
+		$post_type = get_post_type_object( Plugin::POST_TYPE_AGENT_PLUGIN );
+
+		$this->assertNotNull( $post_type, 'The agent_plugin post type should be registered.' );
+		$this->assertTrue( $post_type->show_ui, 'Authors should be able to manage Agent Plugins in wp-admin.' );
+		$this->assertFalse( $post_type->show_in_menu, 'Agent Plugins should not register their own top-level admin menu.' );
+		$this->assertTrue( $post_type->show_in_admin_bar, 'The admin bar New menu should still offer Agent Plugins.' );
+	}
+
+	public function test_admin_menu_nests_settings_skills_and_plugins() {
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'administrator' ] ) );
+
+		$this->register_admin_menu_for_current_user();
+
+		$this->assertSame(
+			[
+				'agent-pilot',
+				'edit.php?post_type=' . Plugin::POST_TYPE_AGENT_SKILL,
+				'post-new.php?post_type=' . Plugin::POST_TYPE_AGENT_SKILL,
+				'edit.php?post_type=' . Plugin::POST_TYPE_AGENT_PLUGIN,
+				'post-new.php?post_type=' . Plugin::POST_TYPE_AGENT_PLUGIN,
+			],
+			$this->get_agent_pilot_submenu_slugs(),
+			'Administrators should see Settings as the default Agent Pilot page, then Skills, Add Skill, Plugins and Add Plugin.'
+		);
+		$this->assertSame(
+			[ 'Settings', 'Skills', 'Add Skill', 'Plugins', 'Add Plugin' ],
+			$this->get_agent_pilot_submenu_titles(),
+			'The nested items should use the short menu titles rather than the post type names.'
+		);
+	}
+
+	public function test_editors_see_skills_and_plugins_without_settings() {
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'editor' ] ) );
+
+		$this->register_admin_menu_for_current_user();
+
+		$this->assertSame(
+			[
+				'edit.php?post_type=' . Plugin::POST_TYPE_AGENT_SKILL,
+				'post-new.php?post_type=' . Plugin::POST_TYPE_AGENT_SKILL,
+				'edit.php?post_type=' . Plugin::POST_TYPE_AGENT_PLUGIN,
+				'post-new.php?post_type=' . Plugin::POST_TYPE_AGENT_PLUGIN,
+			],
+			$this->get_agent_pilot_submenu_slugs(),
+			'Editors should reach Skills and Plugins under Agent Pilot without a Settings item they cannot use.'
+		);
+	}
+
+	public function test_skill_screens_keep_the_agent_pilot_menu_open() {
+		set_current_screen( 'edit-' . Plugin::POST_TYPE_AGENT_SKILL );
+
+		$this->assertSame(
+			'agent-pilot',
+			$this->plugin->filter_parent_file( 'edit.php?post_type=' . Plugin::POST_TYPE_AGENT_SKILL ),
+			'The Agent Skills list should sit under the Agent Pilot menu.'
+		);
+
+		set_current_screen( 'edit-post' );
+
+		$this->assertSame(
+			'edit.php',
+			$this->plugin->filter_parent_file( 'edit.php' ),
+			'Other admin screens should keep their own parent menu.'
+		);
+	}
+
+	private function register_admin_menu_for_current_user(): void {
+		global $menu, $submenu;
+
+		$menu = is_array( $menu ) ? $menu : [];
+		$submenu = is_array( $submenu ) ? $submenu : [];
+		$menu = array_values(
+			array_filter(
+				$menu,
+				fn ( $item ): bool => ! isset( $item[2] ) || 'agent-pilot' !== $item[2]
+			)
+		);
+		unset( $submenu['agent-pilot'] );
+
+		$this->plugin->action_register_admin_menu();
+	}
+
+	/**
+	 * @return string[]
+	 */
+	private function get_agent_pilot_submenu_slugs(): array {
+		return array_values( array_column( $this->get_agent_pilot_submenu(), 2 ) );
+	}
+
+	/**
+	 * @return string[]
+	 */
+	private function get_agent_pilot_submenu_titles(): array {
+		return array_values( array_column( $this->get_agent_pilot_submenu(), 0 ) );
+	}
+
+	private function get_agent_pilot_submenu(): array {
+		global $submenu;
+
+		return $submenu['agent-pilot'] ?? [];
 	}
 
 	public function test_registers_compatibility_post_meta() {

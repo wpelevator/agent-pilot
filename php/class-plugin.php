@@ -88,7 +88,9 @@ class Plugin {
 		add_action( 'wp_abilities_api_init', [ $this, 'action_register_abilities' ] );
 		add_action( 'rest_api_init', [ $this, 'action_register_rest_fields' ] );
 		add_filter( 'allowed_block_types_all', [ $this, 'filter_allowed_block_types' ], 10, 2 );
-		add_action( 'admin_menu', [ $this, 'action_register_settings_page' ] );
+		add_action( 'admin_menu', [ $this, 'action_register_admin_menu' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'action_register_settings_assets' ] );
+		add_filter( 'parent_file', [ $this, 'filter_parent_file' ] );
 		add_filter( 'plugin_action_links_' . $this->get_basename(), [ $this, 'filter_plugin_action_links' ] );
 
 		$this->discovery->init();
@@ -149,14 +151,76 @@ class Plugin {
 		);
 	}
 
-	public function action_register_settings_page(): void {
-		add_options_page(
+	public function action_register_admin_menu(): void {
+		add_menu_page(
 			__( 'Agent Pilot', 'wpelevator-agent-pilot' ),
 			__( 'Agent Pilot', 'wpelevator-agent-pilot' ),
+			'edit_posts',
+			self::SETTINGS_SLUG,
+			[ $this, 'render_settings_page' ],
+			'dashicons-format-chat'
+		);
+
+		add_submenu_page(
+			self::SETTINGS_SLUG,
+			__( 'Agent Pilot Settings', 'wpelevator-agent-pilot' ),
+			__( 'Settings', 'wpelevator-agent-pilot' ),
 			'manage_options',
 			self::SETTINGS_SLUG,
 			[ $this, 'render_settings_page' ]
 		);
+
+		$this->add_post_type_submenu(
+			self::POST_TYPE_AGENT_SKILL,
+			__( 'Skills', 'wpelevator-agent-pilot' ),
+			__( 'Add Skill', 'wpelevator-agent-pilot' )
+		);
+		$this->add_post_type_submenu(
+			self::POST_TYPE_AGENT_PLUGIN,
+			__( 'Plugins', 'wpelevator-agent-pilot' ),
+			__( 'Add Plugin', 'wpelevator-agent-pilot' )
+		);
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			remove_submenu_page( self::SETTINGS_SLUG, self::SETTINGS_SLUG );
+		}
+	}
+
+	/**
+	 * Keep the Agent Pilot menu open on the nested post type screens.
+	 *
+	 * WordPress highlights the post type list as a top-level parent, which
+	 * those post types no longer have once they sit under this menu.
+	 */
+	public function filter_parent_file( $parent_file ) {
+		$screen = get_current_screen();
+
+		if ( $screen instanceof \WP_Screen && in_array( $screen->post_type, [ self::POST_TYPE_AGENT_SKILL, self::POST_TYPE_AGENT_PLUGIN ], true ) ) {
+			$parent_file = self::SETTINGS_SLUG;
+		}
+
+		return $parent_file;
+	}
+
+	private function add_post_type_submenu( string $post_type, string $list_title, string $add_title ): void {
+		$object = get_post_type_object( $post_type );
+
+		if ( $object ) {
+			add_submenu_page(
+				self::SETTINGS_SLUG,
+				$object->labels->name,
+				$list_title,
+				$object->cap->edit_posts,
+				sprintf( 'edit.php?post_type=%s', $post_type )
+			);
+			add_submenu_page(
+				self::SETTINGS_SLUG,
+				$object->labels->add_new_item,
+				$add_title,
+				$object->cap->create_posts,
+				sprintf( 'post-new.php?post_type=%s', $post_type )
+			);
+		}
 	}
 
 	public function filter_plugin_action_links( array $actions ): array {
@@ -180,16 +244,72 @@ class Plugin {
 		return $actions;
 	}
 
+	public function action_register_settings_assets(): void {
+		wp_register_script( 'agent-pilot-settings', false, [], $this->get_version(), true );
+		wp_add_inline_script(
+			'agent-pilot-settings',
+			'function agentPilotCopyField( button ) {
+	var input = button.previousElementSibling;
+	if ( input && input.select ) {
+		input.focus();
+		input.select();
+		if ( navigator.clipboard && navigator.clipboard.writeText ) {
+			navigator.clipboard.writeText( input.value );
+		} else {
+			document.execCommand( "copy" );
+		}
+	}
+}'
+		);
+	}
+
 	public function render_settings_page(): void {
+		wp_enqueue_script( 'agent-pilot-settings' );
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'Agent Pilot', 'wpelevator-agent-pilot' ); ?></h1>
 			<h2><?php esc_html_e( 'Agent Skills', 'wpelevator-agent-pilot' ); ?></h2>
-			<p><?php esc_html_e( 'Install the published skills with:', 'wpelevator-agent-pilot' ); ?> <code>npx skills add <?php echo esc_html( home_url() ); ?></code></p>
-			<p><?php esc_html_e( 'Agent Skills discovery index:', 'wpelevator-agent-pilot' ); ?> <a href="<?php echo esc_url( $this->discovery->get_index_url() ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $this->discovery->get_index_url() ); ?></a></p>
+			<p>
+				<?php
+				printf(
+					/* translators: 1: CLI install command wrapped in code tags, 2: opening anchor tag to the skills npm package, 3: closing anchor tag */
+					esc_html__( 'Use %1$s to install the skills using the %2$sskills package%3$s.', 'wpelevator-agent-pilot' ),
+					'<code>npx skills add ' . esc_html( home_url() ) . '</code>',
+					'<a href="' . esc_url( 'https://www.npmjs.com/package/skills' ) . '" target="_blank" rel="noopener noreferrer">',
+					'</a>'
+				);
+				?>
+			</p>
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Manage Skills', 'wpelevator-agent-pilot' ); ?></th>
+					<td>
+						<?php $this->render_manage_buttons( $this->get_skills_admin_url(), $this->get_skills_new_url() ); ?>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Discovery Index', 'wpelevator-agent-pilot' ); ?></th>
+					<td>
+						<?php
+						$this->render_copyable_url(
+							$this->discovery->get_index_url(),
+							__( 'Well-known index of the Agent Skills published on this site.', 'wpelevator-agent-pilot' )
+						);
+						?>
+					</td>
+				</tr>
+			</table>
 			<h2><?php esc_html_e( 'Agent Plugins', 'wpelevator-agent-pilot' ); ?></h2>
 			<p><?php esc_html_e( 'Create portable Agent Plugin packages, then download and extract the generated ZIP with a compatible installer.', 'wpelevator-agent-pilot' ); ?></p>
-			<p><a href="<?php echo esc_url( $this->get_plugins_admin_url() ); ?>"><?php esc_html_e( 'Manage Agent Plugins', 'wpelevator-agent-pilot' ); ?></a></p>
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Manage Plugins', 'wpelevator-agent-pilot' ); ?></th>
+					<td>
+						<?php $this->render_manage_buttons( $this->get_plugins_admin_url(), $this->get_plugins_new_url() ); ?>
+						<p class="description"><?php esc_html_e( 'Compose published Agent Skills and optional MCP server definitions into a package.', 'wpelevator-agent-pilot' ); ?></p>
+					</td>
+				</tr>
+			</table>
 			<?php $this->render_mcp_settings(); ?>
 		</div>
 		<?php
@@ -231,8 +351,12 @@ class Plugin {
 				<tr>
 					<th scope="row"><?php esc_html_e( 'MCP Server Address', 'wpelevator-agent-pilot' ); ?></th>
 					<td>
-						<code><?php echo esc_html( $this->mcp_server->get_endpoint_url() ); ?></code>
-						<p class="description"><?php esc_html_e( 'URL of the MCP server. Clients that support OAuth discover the rest on their own.', 'wpelevator-agent-pilot' ); ?></p>
+						<?php
+						$this->render_copyable_url(
+							$this->mcp_server->get_endpoint_url(),
+							__( 'URL of the MCP server. Clients that support OAuth discover the rest on their own.', 'wpelevator-agent-pilot' )
+						);
+						?>
 					</td>
 				</tr>
 				<tr>
@@ -275,15 +399,39 @@ class Plugin {
 	}
 
 	public function get_settings_url(): string {
-		return admin_url( 'options-general.php?page=' . self::SETTINGS_SLUG );
+		return admin_url( 'admin.php?page=' . self::SETTINGS_SLUG );
 	}
 
 	public function get_skills_admin_url(): string {
 		return admin_url( 'edit.php?post_type=' . self::POST_TYPE_AGENT_SKILL );
 	}
 
+	public function get_skills_new_url(): string {
+		return admin_url( 'post-new.php?post_type=' . self::POST_TYPE_AGENT_SKILL );
+	}
+
 	public function get_plugins_admin_url(): string {
 		return admin_url( 'edit.php?post_type=' . self::POST_TYPE_AGENT_PLUGIN );
+	}
+
+	public function get_plugins_new_url(): string {
+		return admin_url( 'post-new.php?post_type=' . self::POST_TYPE_AGENT_PLUGIN );
+	}
+
+	private function render_copyable_url( string $url, string $description ): void {
+		?>
+		<input type="text" class="regular-text code" value="<?php echo esc_attr( $url ); ?>" readonly onfocus="this.select();" />
+		<button type="button" class="button" onclick="agentPilotCopyField(this);"><?php esc_html_e( 'Copy', 'wpelevator-agent-pilot' ); ?></button>
+		<a href="<?php echo esc_url( $url ); ?>" class="button-link" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open', 'wpelevator-agent-pilot' ); ?></a>
+		<p class="description"><?php echo esc_html( $description ); ?></p>
+		<?php
+	}
+
+	private function render_manage_buttons( string $list_url, string $new_url ): void {
+		?>
+		<a href="<?php echo esc_url( $list_url ); ?>" class="button"><?php esc_html_e( 'View', 'wpelevator-agent-pilot' ); ?></a>
+		<a href="<?php echo esc_url( $new_url ); ?>" class="button"><?php esc_html_e( 'Add New', 'wpelevator-agent-pilot' ); ?></a>
+		<?php
 	}
 
 	public function action_register_rest_fields(): void {
@@ -414,7 +562,8 @@ class Plugin {
 				'show_in_rest' => true,
 				'rest_base' => 'agent-skills',
 				'show_ui' => true, // Always allow managing skills.
-				'menu_icon' => 'dashicons-format-quote',
+				'show_in_menu' => false,
+				'show_in_admin_bar' => true,
 				'rewrite' => [
 					'slug' => self::PERMALINK_PREFIX_AGENT_SKILL,
 					'with_front' => false,
@@ -460,7 +609,8 @@ class Plugin {
 				'show_in_rest' => true,
 				'rest_base' => 'agent-plugins',
 				'show_ui' => true,
-				'menu_icon' => 'dashicons-media-archive',
+				'show_in_menu' => false,
+				'show_in_admin_bar' => true,
 				'rewrite' => [
 					'slug' => self::PERMALINK_PREFIX_AGENT_PLUGIN,
 					'with_front' => false,

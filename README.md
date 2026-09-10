@@ -9,6 +9,14 @@ Agent Pilot lets WordPress authors create [Agent Skills](https://agentskills.io/
 - PHP `zip` extension for archive generation.
 - Update Pilot is used for automatic plugin updates. Agent Pilot shows an admin notice when Update Pilot is unavailable.
 
+## Admin
+
+Agent Pilot adds a top-level **Agent Pilot** menu:
+
+- **Settings** — discovery index, MCP server, and the install command.
+- **Skills** and **Add Skill** — author Agent Skills in the block editor.
+- **Plugins** and **Add Plugin** — compose Agent Plugins from skills and MCP server definitions.
+
 ## Installing Agent Skills
 
 Publish one or more Agent Skills, then install them with the [`skills` CLI](https://www.npmjs.com/package/skills). Replace `https://example.com` with the WordPress site URL.
@@ -47,7 +55,7 @@ npx skills update my-skill
 
 ## Authoring Skills
 
-Agent Skills are normal WordPress posts with a dedicated post type:
+Agent Skills are normal WordPress posts with a dedicated post type, managed under **Agent Pilot → Skills**:
 
 - Post type: `agent_skill`.
 - Public permalink prefix: `/agent-skill/{name}`.
@@ -167,7 +175,7 @@ The raw artifact rewrite only accepts a one-segment format suffix such as `skill
 
 ## Authoring Agent Plugins
 
-Create an **Agent Plugin** post, enter its manifest details in the top-level block, then insert Plugin Skill and MCP Server child blocks. Skills are stored by post ID and are included live: changing a selected skill changes the next generated plugin archive without re-saving the plugin.
+Create an **Agent Plugin** post under **Agent Pilot → Plugins**, enter its manifest details in the top-level block, then insert Plugin Skill and MCP Server child blocks. Skills are stored by post ID and are included live: changing a selected skill changes the next generated plugin archive without re-saving the plugin.
 
 The manifest supports `name` (the post slug), `description` (the excerpt), `author`, `license`, and `extensions`. A package needs at least one selected skill or valid MCP server. Published packages may only select published skills. A Plugin Skill block with nothing selected yet is ignored rather than treated as an error, so an empty block left open in the editor never breaks the generated artifacts; a block pointing at a post that is not an Agent Skill still fails validation.
 
@@ -189,7 +197,7 @@ With plain permalinks, use `?agent-plugin={name}&agent_pilot_plugin_format=plugi
 
 Agent Pilot can also serve this site's [WordPress Abilities](https://developer.wordpress.org/apis/abilities-api/) as [MCP](https://modelcontextprotocol.io/) tools, so that an agent client can call site functionality directly instead of only reading published instructions. This is separate from the MCP server *definitions* an Agent Plugin carries: those point a client at some other server, while this one is served by WordPress itself.
 
-The server is opt-in. Enable it under **Settings → Agent Pilot**, where the endpoint URL is also shown:
+The server is opt-in. Enable it under **Agent Pilot → Settings**, where the endpoint URL is also shown:
 
 ```text
 https://example.com/wp-json/agent-pilot/v1/mcp
@@ -199,7 +207,7 @@ Requires WordPress 6.9 or newer for the Abilities API. Agent Pilot shows a notic
 
 ### Disabling MCP abilities
 
-Under **Settings → Agent Pilot → Abilities**, select the abilities to exclude and save. Selected abilities disappear from `tools/list` and cannot be called by name through `tools/call`, even by a client that previously discovered them. Clear a checkbox to restore the ability's normal mapping. No abilities are disabled by default.
+Under **Agent Pilot → Settings**, select the abilities to exclude and save. Selected abilities disappear from `tools/list` and cannot be called by name through `tools/call`, even by a client that previously discovered them. Clear a checkbox to restore the ability's normal mapping. No abilities are disabled by default.
 
 The list shows abilities eligible for MCP mapping and any saved exclusions whose provider is currently unavailable. Exclusions apply after the `agent_pilot__mcp_abilities` query filter, so customizing the query does not re-enable a disabled ability. This setting controls Agent Pilot's tool mapping; the abilities and REST endpoints remain available through their normal interfaces.
 
