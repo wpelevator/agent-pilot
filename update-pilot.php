@@ -4,7 +4,7 @@
  * Description: For WordPress multisite only: activate on the main site of the network to enable automatic updates for Agent Pilot plugin without having to network-enable the plugin.
  * Author: WP Elevator
  * Author URI: https://wpelevator.com
- * Update URI: https://updates.wpelevator.com/wp-json/update-pilot/v1/plugins
+ * Update URI: false
  * Requires at least: 6.6
  * Requires PHP: 7.4
  * Network: true

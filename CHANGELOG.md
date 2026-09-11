@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.11.1 (2026-09-11)
+
+- Fixed WordPress offering an update for the bundled "Agent Pilot Automatic Updates" plugin. It shared the Agent Pilot `Update URI`, so Update Pilot asked the update server about it, and the server answered with the Agent Pilot package. Since that plugin has no version, any release looked newer, and running that update would have replaced the Agent Pilot directory with whatever version the server returned. Its `Update URI` is now `false`, so WordPress skips it when checking for updates.
+
 ## 0.11.0 (2026-09-11)
 
 - Agent Pilot updates itself through the bundled update client, verified against the WP Elevator signing key, so the Update Pilot plugin is no longer required and the notice asking to install it is gone. When Update Pilot is active, it handles the updates instead.
