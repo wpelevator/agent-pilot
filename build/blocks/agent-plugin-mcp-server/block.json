@@ -1,0 +1,25 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "agent-pilot/agent-plugin-mcp-server",
+  "title": "Agent MCP Server",
+  "category": "text",
+  "parent": [
+    "agent-pilot/agent-plugin"
+  ],
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "definition": {
+      "type": "string",
+      "default": "{}"
+    }
+  },
+  "editorScript": "file:./index.js",
+  "editorStyle": "file:./index.css",
+  "supports": {
+    "html": false,
+    "reusable": false
+  }
+}
