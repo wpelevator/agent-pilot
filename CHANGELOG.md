@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.11.2 (2026-09-11)
+
+- The bundled "Agent Pilot Automatic Updates" plugin now works on single sites too, not only on multisite. Activate it to keep receiving Agent Pilot updates while Agent Pilot is inactive. On single sites it's hidden from the plugin list while Agent Pilot is active, since Agent Pilot handles its own updates then, unless it's already active itself.
+
 ## 0.11.1 (2026-09-11)
 
 - Fixed WordPress offering an update for the bundled "Agent Pilot Automatic Updates" plugin. It shared the Agent Pilot `Update URI`, so Update Pilot asked the update server about it, and the server answered with the Agent Pilot package. Since that plugin has no version, any release looked newer, and running that update would have replaced the Agent Pilot directory with whatever version the server returned. Its `Update URI` is now `false`, so WordPress skips it when checking for updates.

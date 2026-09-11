@@ -1,15 +1,14 @@
 <?php
 /**
  * Plugin Name: Agent Pilot Automatic Updates
- * Description: For WordPress multisite only: activate on the main site of the network to enable automatic updates for Agent Pilot plugin without having to network-enable the plugin.
+ * Description: Enable automatic updates for Agent Pilot even while the plugin isn't active. Especially useful on WordPress multisites where updates only happen on the main site of the network.
  * Author: WP Elevator
  * Author URI: https://wpelevator.com
+ * Plugin URI: https://wpelevator.com/plugins/agent-pilot#updates
  * Update URI: false
  * Requires at least: 6.6
  * Requires PHP: 7.4
  * Network: true
- *
- * @see https://wpelevator.com/plugins/update-pilot
  */
 
 namespace WPElevator\Agent_Pilot;
@@ -60,11 +59,12 @@ add_filter(
 add_filter(
 	'plugins_list',
 	function ( array $plugins ): array {
-		$basename = plugin_basename( __FILE__ );
+		$plugin_basename = plugin_basename( __DIR__ . '/agent-pilot.php' );
+		$update_basename = plugin_basename( __FILE__ );
 
-		if ( ! is_multisite() ) {
+		if ( ! is_multisite() && is_plugin_active( $plugin_basename ) && ! is_plugin_active( $update_basename ) ) {
 			foreach ( $plugins as &$plugin_list ) {
-				unset( $plugin_list[ $basename ] ); // Hide this auto-update plugin on single sites to avoid confusion.
+				unset( $plugin_list[ $update_basename ] ); // Hide this auto-update plugin on single sites to avoid confusion.
 			}
 		}
 

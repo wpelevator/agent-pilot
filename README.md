@@ -7,7 +7,7 @@ Agent Pilot lets WordPress authors create [Agent Skills](https://agentskills.io/
 - WordPress 6.6 or newer, or 6.9 or newer for the MCP server, which needs the Abilities API.
 - PHP 7.4 or newer.
 - PHP `zip` extension for archive generation.
-- Automatic updates work out of the box through the bundled update client, or through Update Pilot when it's active. On multisite, network-activate the bundled "Agent Pilot Automatic Updates" plugin to get updates without network-enabling Agent Pilot.
+- Automatic updates work out of the box through the bundled update client, or through Update Pilot when it's active. To keep receiving updates while Agent Pilot is inactive, activate the bundled "Agent Pilot Automatic Updates" plugin. On single sites it's hidden while Agent Pilot is active, unless it's already active itself. On multisite, network-activate it to get updates without network-enabling Agent Pilot.
 
 ## Admin
 
