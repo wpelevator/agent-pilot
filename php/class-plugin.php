@@ -3,7 +3,6 @@
 namespace WPElevator\Agent_Pilot;
 
 class Plugin {
-
 	public const POST_TYPE_AGENT_SKILL = 'agent_skill';
 	public const POST_TYPE_AGENT_PLUGIN = 'agent_plugin';
 
@@ -81,7 +80,7 @@ class Plugin {
 		);
 	}
 
-	public function init() {
+	public function init(): void {
 		add_action( 'init', [ $this, 'action_register_post_type' ] );
 		add_action( 'init', [ $this, 'action_register_blocks' ] );
 		add_action( 'wp_abilities_api_categories_init', [ $this, 'action_register_ability_category' ] );
@@ -122,6 +121,10 @@ class Plugin {
 
 	public function get_agent_plugins(): Agent_Plugins {
 		return $this->agent_plugins;
+	}
+
+	private function get_license_key(): ?string {
+		return null; // TODO: get this from settings.
 	}
 
 	public function action_register_abilities(): void {
@@ -331,7 +334,15 @@ class Plugin {
 
 		<?php if ( ! $authentication->is_oauth_available() ) : ?>
 			<div class="notice notice-info inline">
-				<p><?php esc_html_e( 'OAuth Pilot is not active. The MCP server currently accepts only signed-in users and Application Passwords. Activate OAuth Pilot to let agent clients authenticate themselves through OAuth 2.1.', 'wpelevator-agent-pilot' ); ?></p>
+				<p>
+				<?php
+					echo sprintf(
+						/* translators: %s: OAuth Pilot plugin link */
+						esc_html__( 'Install and activate %s to enable simple authentication for all major AI apps and clients such as ChatGPT and Claude.', 'wpelevator-agent-pilot' ),
+						sprintf( '<a href="https://wpelevator.com/plugins/oauth-pilot">OAuth Pilot</a>' )
+					);
+				?>
+				</p>
 			</div>
 		<?php endif; ?>
 

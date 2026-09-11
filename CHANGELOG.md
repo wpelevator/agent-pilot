@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.11.0 (2026-09-11)
+
+- Agent Pilot updates itself through the bundled update client, verified against the WP Elevator signing key, so the Update Pilot plugin is no longer required and the notice asking to install it is gone. When Update Pilot is active, it handles the updates instead.
+- On multisite, the bundled `update-pilot.php` is now a plugin of its own, "Agent Pilot Automatic Updates". Network-activate it to enable automatic updates for Agent Pilot without network-enabling Agent Pilot itself. It's hidden from the plugin list on single sites, where Agent Pilot handles its own updates.
+- Updated the bundled update client from 0.4 to 0.8.1, which fixes a fatal error when viewing the plugin details from the update notice.
+- The MCP server settings link to OAuth Pilot when it isn't active, which enables simple authentication for AI apps and clients such as ChatGPT and Claude.
+- The plugin description mentions Agent Plugins and the MCP server.
+
 ## 0.10.1 (2026-09-11)
 
 - Agent Pilot updates, and the Update Pilot plugin installed from the "Install" prompt, are now verified against the WP Elevator signing key. An update or install with a missing or invalid signature is refused.

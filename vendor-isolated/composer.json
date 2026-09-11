@@ -16,7 +16,7 @@
 		}
 	},
 	"require": {
-		"wpelevator/update-client": "^0.4",
+		"wpelevator/update-client": "^0.8",
 		"wpelevator/vendor-isolator": "^0.1"
 	}
 }
