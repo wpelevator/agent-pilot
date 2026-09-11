@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.10.1 (2026-09-11)
+
+- Agent Pilot updates, and the Update Pilot plugin installed from the "Install" prompt, are now verified against the WP Elevator signing key. An update or install with a missing or invalid signature is refused.
+- Fixed the Update Pilot registration using a `file` key where Update Pilot reads `plugin`, so Update Pilot ignored its license and signing keys.
+
 ## 0.10.0 (2026-09-10)
 
 - Moved the Agent Pilot admin screens under one top-level menu. Settings is the default page, with Skills, Add Skill, Plugins and Add Plugin nested under it, and the Agent Skill and Agent Plugin post types no longer register their own top-level menus. The settings screen presents Skills and Plugins in the same form table as the MCP Server.
