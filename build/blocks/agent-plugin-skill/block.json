@@ -1,0 +1,20 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "agent-pilot/agent-plugin-skill",
+  "title": "Agent Plugin Skill",
+  "category": "text",
+  "parent": [
+    "agent-pilot/agent-plugin"
+  ],
+  "attributes": {
+    "skillId": {
+      "type": "number"
+    }
+  },
+  "editorScript": "file:./index.js",
+  "supports": {
+    "html": false,
+    "reusable": false
+  }
+}
