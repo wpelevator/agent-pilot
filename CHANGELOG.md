@@ -1,7 +1,5 @@
 # Changelog
 
-## Unreleased
-
 ## 0.11.2 (2026-09-11)
 
 - The bundled "Agent Pilot Automatic Updates" plugin now works on single sites too, not only on multisite. Activate it to keep receiving Agent Pilot updates while Agent Pilot is inactive. On single sites it's hidden from the plugin list while Agent Pilot is active, since Agent Pilot handles its own updates then, unless it's already active itself.
