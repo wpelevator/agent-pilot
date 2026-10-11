@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "agent-pilot/agent-skill-script",
+  "version": "0.1.0",
+  "title": "Agent Skill Script",
+  "category": "text",
+  "icon": "editor-code",
+  "description": "Add a named script to an Agent Skill.",
+  "textdomain": "wpelevator-agent-pilot",
+  "parent": [
+    "agent-pilot/agent-skill"
+  ],
+  "attributes": {
+    "fileName": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string",
+      "source": "text",
+      "selector": "code"
+    }
+  },
+  "editorScript": "file:./index.js",
+  "editorStyle": "file:./index.css",
+  "supports": {
+    "html": false,
+    "reusable": false
+  }
+}

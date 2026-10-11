@@ -1,0 +1,28 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "agent-pilot/agent-skill-asset",
+  "version": "0.1.0",
+  "title": "Agent Skill Asset",
+  "category": "media",
+  "icon": "media-default",
+  "description": "Add a Media Library attachment to an Agent Skill.",
+  "textdomain": "wpelevator-agent-pilot",
+  "parent": [
+    "agent-pilot/agent-skill"
+  ],
+  "attributes": {
+    "attachmentId": {
+      "type": "number"
+    },
+    "fileName": {
+      "type": "string"
+    }
+  },
+  "editorScript": "file:./index.js",
+  "editorStyle": "file:./index.css",
+  "supports": {
+    "html": false,
+    "reusable": false
+  }
+}
