@@ -27,7 +27,7 @@
 		"build:php": "composer install --no-plugins --no-dev --optimize-autoloader",
 		"dev": "npm-run-all dev:*",
 		"dev:js": "wp-scripts start --source-path=js",
-		"lint": "wp-scripts lint-js js",
+		"lint": "wp-scripts lint-js",
 		"format": "npm-run-all format:*",
 		"format:js": "wp-scripts format js"
 	}
