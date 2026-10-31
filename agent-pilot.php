@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Agent Pilot
  * Description: Publish Agent skills and plugins, and enable MCP server for WordPress.
- * Version: 0.11.2
+ * Version: 0.12.0
  * Author: WP Elevator
  * Author URI: https://wpelevator.com
  * Plugin URI: https://wpelevator.com/plugins/agent-pilot
