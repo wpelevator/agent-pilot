@@ -46,6 +46,7 @@ class Plugin {
 	private Skills $skills;
 	private Agent_Plugins $agent_plugins;
 	private Agent_Plugin_Discovery $plugin_discovery;
+	private Ard_Discovery $ard_discovery;
 
 	private MCP\Settings $mcp_settings;
 	private MCP\Server $mcp_server;
@@ -58,6 +59,7 @@ class Plugin {
 		$this->discovery = new Discovery( $this->skills, $response_emitter );
 		$this->agent_plugins = new Agent_Plugins();
 		$this->plugin_discovery = new Agent_Plugin_Discovery( $this->agent_plugins, $response_emitter );
+		$this->ard_discovery = new Ard_Discovery( $this->skills, $this->agent_plugins, $this->discovery, $this->plugin_discovery, $response_emitter );
 
 		$this->mcp_settings = new MCP\Settings();
 		$this->mcp_server = new MCP\Server(
@@ -94,6 +96,7 @@ class Plugin {
 
 		$this->discovery->init();
 		$this->plugin_discovery->init();
+		$this->ard_discovery->init();
 		$this->mcp_server->init();
 	}
 
