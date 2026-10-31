@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.0 (2026-10-31)
+
+- Publish published skills and Agent Plugins as an Agentic Resource Discovery manifest at `/.well-known/ard.json`, advertised with a `<link rel="ard">` tag, so that clients that discover resources by domain can find them. Integrations can add or change entries with the `agent_pilot__ard_entries` filter. ([`749f313`](https://github.com/wpelevator/basement/commit/749f313d449403c5490583feab42632d8166973c))
+
 ## 0.11.2 (2026-09-11)
 
 - The bundled "Agent Pilot Automatic Updates" plugin now works on single sites too, not only on multisite. Activate it to keep receiving Agent Pilot updates while Agent Pilot is inactive. On single sites it's hidden from the plugin list while Agent Pilot is active, since Agent Pilot handles its own updates then, unless it's already active itself.
