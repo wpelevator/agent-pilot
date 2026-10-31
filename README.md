@@ -173,6 +173,50 @@ Link: <https://example.com/.well-known/agent-skills/index.json>; rel="agent-skil
 
 The raw artifact rewrite only accepts a one-segment format suffix such as `skill.md` or `skill.zip`, so nested paths such as `/agent-skill/{name}/references/guide.md` stay with WordPress. Other one-segment suffixes under a skill permalink, including `/feed` and `/embed`, are claimed by the same rewrite and resolve to the single skill view instead of the WordPress feed and embed endpoints.
 
+## Agentic Resource Discovery
+
+Agent Pilot also publishes the skills and Agent Plugins of the site as an [Agentic Resource Discovery](https://agenticresourcediscovery.org/spec/) (ARD) manifest, so that clients that look for resources by domain can find them without knowing the Agent Skills index. ARD is a proposal (v0.91 at the time of writing), so the format may change.
+
+```text
+/.well-known/ard.json
+```
+
+Pages advertise the manifest with `<link rel="ard" href="https://example.com/.well-known/ard.json">`. The manifest is built from the same published skills as the discovery index above, plus every published and valid Agent Plugin, so drafts and invalid plugins stay hidden. It is served like the other discovery responses, with `GET` and `HEAD`, CORS and ETags.
+
+```json
+{
+	"entries": [
+		{
+			"identifier": "urn:air:example.com:skill:my-skill",
+			"displayName": "My Skill",
+			"type": "application/agent-skills+zip",
+			"url": "https://example.com/agent-skill/my-skill/skill.zip",
+			"description": "What the skill does.",
+			"updatedAt": "2026-10-31T09:00:00+00:00"
+		}
+	]
+}
+```
+
+- `identifier` is `urn:air:{host}:skill:{name}` for a skill and `urn:air:{host}:plugin:{name}` for an Agent Plugin, anchored to the site's host without its port. A host the URN cannot express, such as one with an underscore, publishes no entries.
+- `type` is `application/agent-skills+zip` or `application/agent-plugins+zip`, and `url` is the archive that artifact route serves.
+- `representativeQueries`, `capabilities` and `trustManifest` are not published yet, and the MCP server and registry search are not part of the manifest.
+
+Like the discovery index, the manifest is served from the site's home URL, so on a subdirectory install it is not at the domain root where ARD clients look. It needs pretty permalinks. Add or change entries with the `agent_pilot__ard_entries` filter, which receives the array of entries:
+
+```php
+add_filter( 'agent_pilot__ard_entries', function ( array $entries ): array {
+	$entries[] = [
+		'identifier' => 'urn:air:example.com:server:docs',
+		'displayName' => 'Docs MCP Server',
+		'type' => 'application/mcp-server-card+json',
+		'url' => 'https://example.com/mcp/docs.json',
+	];
+
+	return $entries;
+} );
+```
+
 ## Authoring Agent Plugins
 
 Create an **Agent Plugin** post under **Agent Pilot → Plugins**, enter its manifest details in the top-level block, then insert Plugin Skill and MCP Server child blocks. Skills are stored by post ID and are included live: changing a selected skill changes the next generated plugin archive without re-saving the plugin.

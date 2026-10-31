@@ -127,6 +127,7 @@ class ComposerStaticInit86fea89c338620e2677bd612d6bc60fd
         'WPElevator\\Agent_Pilot\\Agent_Plugin_Discovery' => __DIR__ . '/../..' . '/php/class-agent-plugin-discovery.php',
         'WPElevator\\Agent_Pilot\\Agent_Plugin_Post' => __DIR__ . '/../..' . '/php/class-agent-plugin-post.php',
         'WPElevator\\Agent_Pilot\\Agent_Plugins' => __DIR__ . '/../..' . '/php/class-agent-plugins.php',
+        'WPElevator\\Agent_Pilot\\Ard_Discovery' => __DIR__ . '/../..' . '/php/class-ard-discovery.php',
         'WPElevator\\Agent_Pilot\\Cache_Transient' => __DIR__ . '/../..' . '/php/class-cache-transient.php',
         'WPElevator\\Agent_Pilot\\Content_Blocks' => __DIR__ . '/../..' . '/php/class-content-blocks.php',
         'WPElevator\\Agent_Pilot\\Discovery' => __DIR__ . '/../..' . '/php/class-discovery.php',

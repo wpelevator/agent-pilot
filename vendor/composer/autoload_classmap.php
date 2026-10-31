@@ -112,6 +112,7 @@ return array(
     'WPElevator\\Agent_Pilot\\Agent_Plugin_Discovery' => $baseDir . '/php/class-agent-plugin-discovery.php',
     'WPElevator\\Agent_Pilot\\Agent_Plugin_Post' => $baseDir . '/php/class-agent-plugin-post.php',
     'WPElevator\\Agent_Pilot\\Agent_Plugins' => $baseDir . '/php/class-agent-plugins.php',
+    'WPElevator\\Agent_Pilot\\Ard_Discovery' => $baseDir . '/php/class-ard-discovery.php',
     'WPElevator\\Agent_Pilot\\Cache_Transient' => $baseDir . '/php/class-cache-transient.php',
     'WPElevator\\Agent_Pilot\\Content_Blocks' => $baseDir . '/php/class-content-blocks.php',
     'WPElevator\\Agent_Pilot\\Discovery' => $baseDir . '/php/class-discovery.php',

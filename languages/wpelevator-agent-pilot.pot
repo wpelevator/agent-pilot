@@ -12,10 +12,10 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #: agent-pilot.php:3
-#: php/class-plugin.php:151
-#: php/class-plugin.php:159
-#: php/class-plugin.php:160
-#: php/class-plugin.php:273
+#: php/class-plugin.php:154
+#: php/class-plugin.php:162
+#: php/class-plugin.php:163
+#: php/class-plugin.php:276
 msgid "Agent Pilot"
 msgstr ""
 
@@ -140,204 +140,204 @@ msgstr ""
 msgid "ZipArchive class is not available. Please ensure the PHP zip extension is installed and enabled."
 msgstr ""
 
-#: php/class-plugin.php:152
+#: php/class-plugin.php:155
 msgid "Interact with this WordPress site."
 msgstr ""
 
-#: php/class-plugin.php:169
+#: php/class-plugin.php:172
 msgid "Agent Pilot Settings"
 msgstr ""
 
-#: php/class-plugin.php:170
-#: php/class-plugin.php:244
+#: php/class-plugin.php:173
+#: php/class-plugin.php:247
 msgid "Settings"
 msgstr ""
 
-#: php/class-plugin.php:178
-#: php/class-plugin.php:233
+#: php/class-plugin.php:181
+#: php/class-plugin.php:236
 msgid "Skills"
 msgstr ""
 
-#: php/class-plugin.php:179
+#: php/class-plugin.php:182
 #: js/blocks/agent-plugin/index.js:31
 msgid "Add Skill"
 msgstr ""
 
-#: php/class-plugin.php:183
-#: php/class-plugin.php:238
+#: php/class-plugin.php:186
+#: php/class-plugin.php:241
 msgid "Plugins"
 msgstr ""
 
-#: php/class-plugin.php:184
+#: php/class-plugin.php:187
 msgid "Add Plugin"
 msgstr ""
 
-#: php/class-plugin.php:274
-#: php/class-plugin.php:559
-#: php/class-plugin.php:568
-#: php/class-plugin.php:569
+#: php/class-plugin.php:277
+#: php/class-plugin.php:562
+#: php/class-plugin.php:571
+#: php/class-plugin.php:572
 msgid "Agent Skills"
 msgstr ""
 
 #. translators: 1: CLI install command wrapped in code tags, 2: opening anchor tag to the skills npm package, 3: closing anchor tag
-#: php/class-plugin.php:279
+#: php/class-plugin.php:282
 #, php-format
 msgid "Use %1$s to install the skills using the %2$sskills package%3$s."
 msgstr ""
 
-#: php/class-plugin.php:288
+#: php/class-plugin.php:291
 msgid "Manage Skills"
 msgstr ""
 
-#: php/class-plugin.php:294
+#: php/class-plugin.php:297
 msgid "Discovery Index"
 msgstr ""
 
-#: php/class-plugin.php:299
+#: php/class-plugin.php:302
 msgid "Well-known index of the Agent Skills published on this site."
 msgstr ""
 
-#: php/class-plugin.php:305
-#: php/class-plugin.php:612
-#: php/class-plugin.php:616
+#: php/class-plugin.php:308
+#: php/class-plugin.php:615
+#: php/class-plugin.php:619
 msgid "Agent Plugins"
 msgstr ""
 
-#: php/class-plugin.php:306
+#: php/class-plugin.php:309
 msgid "Create portable Agent Plugin packages, then download and extract the generated ZIP with a compatible installer."
 msgstr ""
 
-#: php/class-plugin.php:309
+#: php/class-plugin.php:312
 msgid "Manage Plugins"
 msgstr ""
 
-#: php/class-plugin.php:312
+#: php/class-plugin.php:315
 msgid "Compose published Agent Skills and optional MCP server definitions into a package."
 msgstr ""
 
-#: php/class-plugin.php:326
-#: php/class-plugin.php:353
+#: php/class-plugin.php:329
+#: php/class-plugin.php:356
 msgid "MCP Server"
 msgstr ""
 
-#: php/class-plugin.php:327
+#: php/class-plugin.php:330
 msgid "Publish the available WordPress Abilities as MCP tools so that agent clients can call them directly."
 msgstr ""
 
-#: php/class-plugin.php:331
+#: php/class-plugin.php:334
 msgid "This site does not have the WordPress Abilities API, which requires WordPress 6.9 or newer. The MCP server has nothing to expose until it is available."
 msgstr ""
 
 #. translators: %s: OAuth Pilot plugin link
-#: php/class-plugin.php:341
+#: php/class-plugin.php:344
 #, php-format
 msgid "Install and activate %s to enable simple authentication for all major AI apps and clients such as ChatGPT and Claude."
 msgstr ""
 
-#: php/class-plugin.php:357
+#: php/class-plugin.php:360
 msgid "Enable MCP server"
 msgstr ""
 
-#: php/class-plugin.php:359
+#: php/class-plugin.php:362
 msgid "Abilities are exposed only when they opt in with the mcp.public meta flag, and every call still runs the ability's own permission check."
 msgstr ""
 
-#: php/class-plugin.php:363
+#: php/class-plugin.php:366
 msgid "MCP Server Address"
 msgstr ""
 
-#: php/class-plugin.php:368
+#: php/class-plugin.php:371
 msgid "URL of the MCP server. Clients that support OAuth discover the rest on their own."
 msgstr ""
 
-#: php/class-plugin.php:374
+#: php/class-plugin.php:377
 msgid "MCP Tools"
 msgstr ""
 
-#: php/class-plugin.php:393
+#: php/class-plugin.php:396
 msgid "Select the registered WordPress abilities to disable in MCP clients and prevent them from calling as tools."
 msgstr ""
 
-#: php/class-plugin.php:406
+#: php/class-plugin.php:409
 msgid "No abilities are available for MCP mapping."
 msgstr ""
 
-#: php/class-plugin.php:435
+#: php/class-plugin.php:438
 msgid "Copy"
 msgstr ""
 
-#: php/class-plugin.php:436
+#: php/class-plugin.php:439
 msgid "Open"
 msgstr ""
 
-#: php/class-plugin.php:443
+#: php/class-plugin.php:446
 msgid "View"
 msgstr ""
 
-#: php/class-plugin.php:444
+#: php/class-plugin.php:447
 msgid "Add New"
 msgstr ""
 
-#: php/class-plugin.php:463
+#: php/class-plugin.php:466
 msgid "Absolute permalink for the human-readable Agent Skill."
 msgstr ""
 
-#: php/class-plugin.php:522
+#: php/class-plugin.php:525
 msgid "Absolute URL for the generated SKILL.md file."
 msgstr ""
 
-#: php/class-plugin.php:544
+#: php/class-plugin.php:547
 msgid "Absolute URL for the generated skill ZIP archive."
 msgstr ""
 
-#: php/class-plugin.php:560
+#: php/class-plugin.php:563
 #: js/blocks/agent-skill/skill-files-panel.js:32
 msgid "Agent Skill"
 msgstr ""
 
-#: php/class-plugin.php:561
+#: php/class-plugin.php:564
 msgid "Add New Agent Skill"
 msgstr ""
 
-#: php/class-plugin.php:562
+#: php/class-plugin.php:565
 msgid "Edit Agent Skill"
 msgstr ""
 
-#: php/class-plugin.php:563
+#: php/class-plugin.php:566
 msgid "New Agent Skill"
 msgstr ""
 
-#: php/class-plugin.php:564
+#: php/class-plugin.php:567
 msgid "View Agent Skill"
 msgstr ""
 
-#: php/class-plugin.php:565
+#: php/class-plugin.php:568
 msgid "Search Agent Skills"
 msgstr ""
 
-#: php/class-plugin.php:566
+#: php/class-plugin.php:569
 msgid "No agent skills found."
 msgstr ""
 
-#: php/class-plugin.php:567
+#: php/class-plugin.php:570
 msgid "No agent skills found in Trash."
 msgstr ""
 
-#: php/class-plugin.php:602
+#: php/class-plugin.php:605
 msgid "Agent Skills compatibility requirements."
 msgstr ""
 
-#: php/class-plugin.php:613
+#: php/class-plugin.php:616
 #: js/blocks/agent-plugin/index.js:61
 #: js/blocks/agent-plugin/plugin-files-panel.js:64
 msgid "Agent Plugin"
 msgstr ""
 
-#: php/class-plugin.php:614
+#: php/class-plugin.php:617
 msgid "Add New Agent Plugin"
 msgstr ""
 
-#: php/class-plugin.php:615
+#: php/class-plugin.php:618
 msgid "Edit Agent Plugin"
 msgstr ""
 
