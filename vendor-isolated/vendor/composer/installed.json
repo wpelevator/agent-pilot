@@ -16,7 +16,6 @@
                 "shasum": ""
             },
             "time": "2026-09-11T14:34:06+00:00",
-            "published-time": "2026-09-11T14:34:15+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
